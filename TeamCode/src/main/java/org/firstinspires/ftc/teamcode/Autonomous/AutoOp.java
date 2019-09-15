@@ -34,6 +34,8 @@ public class AutoOp extends LinearOpMode {
     public void runOpMode() {
         initialize();
 
+        telemetry.addData("Testing github commit", "Success");
+
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
