@@ -33,7 +33,7 @@ public class Bezier
     {
         double dxdt = 0;
         double dydt = 0;
-        for(int i = 0; i <= n-1; i++) {
+        for(int i = 0; i < n; i++) {
             dxdt += n*Combinatorics.nCr(n-1,i)*Math.pow(1-t,n-i-1)*Math.pow(t,i)*(xCoords[i+1]-xCoords[i]);
             dydt += n*Combinatorics.nCr(n-1,i)*Math.pow(1-t,n-i-1)*Math.pow(t,i)*(yCoords[i+1]-yCoords[i]);
         }
@@ -63,7 +63,7 @@ public class Bezier
     }
     public double getArcLength()
     {
-        double stepsize = .00001;
+        double stepsize = .0001;
         double arclength = 0;
         double dxdt = 0;
         double dydt = 0;
