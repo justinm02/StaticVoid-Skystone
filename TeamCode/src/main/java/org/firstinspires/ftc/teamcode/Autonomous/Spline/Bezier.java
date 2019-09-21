@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.Autonomous.Spline;
 
-import org.firstinspires.ftc.teamcode.Autonomous.Spline.Combinatorics;
-import org.firstinspires.ftc.teamcode.Autonomous.Spline.Waypoint;
-
 public class Bezier
 {
     private Waypoint[] coords;

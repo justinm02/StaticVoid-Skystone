@@ -96,10 +96,10 @@ public class GamerOp extends OpMode {
         final double rightRearPower = Range.clip(x * Math.cos(powerAngle) + rightX, -1.0, 1.0);
 
         //(Code Below) If (?) precision than 0.1 else (:) 1
-        leftFrontDrive.setPower(leftFrontPower * (precision ? 0.2 : 0.7));
-        leftRearDrive.setPower(leftRearPower * (precision ? 0.2 : 0.7));
-        rightFrontDrive.setPower(rightFrontPower * (precision ? 0.2 : 0.7));
-        rightRearDrive.setPower(rightRearPower * (precision ? 0.2 : 0.7));
+        leftFrontDrive.setPower(leftFrontPower * (precision ? 0.2 : 1.0));
+        leftRearDrive.setPower(leftRearPower * (precision ? 0.2 : 1.0));
+        rightFrontDrive.setPower(rightFrontPower * (precision ? 0.2 : 1.0));
+        rightRearDrive.setPower(rightRearPower * (precision ? 0.2 : 1.0));
 
         // Send DS wheel power values.
         telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFrontPower, rightFrontPower);
