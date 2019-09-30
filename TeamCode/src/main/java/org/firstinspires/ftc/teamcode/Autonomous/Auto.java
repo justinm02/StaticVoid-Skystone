@@ -4,39 +4,51 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.teamcode.Autonomous.PID.PID;
 import org.firstinspires.ftc.teamcode.Autonomous.Spline.Bezier;
 import org.firstinspires.ftc.teamcode.Autonomous.Spline.Waypoint;
+import org.firstinspires.ftc.teamcode.Autonomous.Vuforia.Vuforia;
 
 import com.qualcomm.robotcore.util.Range;
-
 
 public abstract class Auto extends LinearOpMode {
     private ElapsedTime runtime;
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, parallelEncoderTracker, perpendicularEncoderTracker;
-    private DcMotorEx[] motors = {leftFront, leftBack, rightFront, rightBack};
+    private DcMotorEx[] motors;
+    private Servo frontPlatformLatcher, backPlatformLatcher;
     private BNO055IMU imu;
-    private PID ForwardHeadingPid = new PID(0.023, 0, 0.0023);
+    private PID ForwardHeadingPid = new PID(0.01, 0, 0.01);
     private PID BackwardsHeadingPID = new PID(0, 0, 0);
     private PID strafePID = new PID(0, 0, 0); //still need to be determined and tuned
     public int initialParallelEncoderPosition;
     public int initialPerpendicularEncoderPosition;
-    private double xPos;
-    private double yPos;
-    private final int deadWheelTicks = 1440; //tested and validated ticks per revolution of parallel deadwheel
+    private double xPos = 0;
+    private double yPos = 0;
+    private final int deadWheelTicks = 1320; //tested and validated ticks per revolution of parallel deadwheel; old: 1440
     private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05; //circumference of parallel deadwheel
     private final double INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/deadWheelTicks; //conversion used to convert inches to ticks (what encoderTracker.getCurrentPosition() reads)
 
+    private Vuforia vuforia = new Vuforia();
+    private int cameraMonitorViewId;
+    private VuforiaLocalizer.Parameters parameters;
+
     public void initialize() {
         initMotors();
+        initServos();
         initGyro();
+        initVuforia();
 
         runtime = new ElapsedTime();
+
+        xPos = 0;
+        yPos = 0;
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -47,18 +59,29 @@ public abstract class Auto extends LinearOpMode {
         leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
         rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
         rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
-        parallelEncoderTracker = hardwareMap.get(DcMotorEx.class, "parallelencoderTracker");
-        perpendicularEncoderTracker = hardwareMap.get(DcMotorEx.class, "parallelencoderTracker");
+        parallelEncoderTracker = hardwareMap.get(DcMotorEx.class, "parallelEncoderTracker");
+
+        motors = new DcMotorEx[] {leftFront, leftBack, rightFront, rightBack};
+
+        for (DcMotorEx motor : motors) {
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
+
+        //perpendicularEncoderTracker = hardwareMap.get(DcMotorEx.class, "perpendicularEncoderTracker");
 
         leftFront.setDirection(DcMotor.Direction.REVERSE);
         leftBack.setDirection(DcMotor.Direction.REVERSE);
-        parallelEncoderTracker.setDirection(DcMotor.Direction.REVERSE);
-        perpendicularEncoderTracker.setDirection(DcMotor.Direction.REVERSE);
+        //parallelEncoderTracker.setDirection(DcMotor.Direction.REVERSE);
+        //perpendicularEncoderTracker.setDirection(DcMotor.Direction.REVERSE);
 
         parallelEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        perpendicularEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        parallelEncoderTracker.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //perpendicularEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
 
-        motors = new DcMotorEx[] {leftFront, leftBack, rightFront, rightBack};
+    public void initServos() {
+        frontPlatformLatcher = hardwareMap.servo.get("frontLatcher");
+        backPlatformLatcher = hardwareMap.servo.get("backLatcher");
     }
 
     public void initGyro() {
@@ -68,8 +91,26 @@ public abstract class Auto extends LinearOpMode {
         imu.initialize(parameters);
     }
 
+    public void initVuforia() {
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+    }
+
+    public void determineSkystonePlacement() throws InterruptedException {
+        correction(.25, 0, "strafeleft", false);
+        double yPosition = vuforia.getYPosition(parameters);
+
+        double current = runtime.time();
+
+        while (runtime.time() - current < 5) {
+            heartbeat();
+            telemetry.addData("yPosition", yPosition);
+            telemetry.update();
+        }
+    }
+
     public void move(double targetHeading, double power, String direction) throws InterruptedException {
-        initialParallelEncoderPosition = parallelEncoderTracker.getCurrentPosition();
+        double startingPosition = parallelEncoderTracker.getCurrentPosition();
         boolean inverted = false;
 
         if (power < 0)
@@ -77,27 +118,27 @@ public abstract class Auto extends LinearOpMode {
 
         int target = 100000; //just a random high value used for only PID testing purposes atm. 100000 ticks has no real significance
 
-        while (Math.abs(initialParallelEncoderPosition - parallelEncoderTracker.getCurrentPosition()) < target) {
+        while (Math.abs(startingPosition - parallelEncoderTracker.getCurrentPosition()) < target) {
             correction(power, targetHeading, direction, inverted);
+            trackPosition();
             heartbeat();
         }
 
         halt();
     }
 
-    public void strafe(double power, int targetHeading, String direction) throws InterruptedException {
-        //current strafe code shown below used solely for testing PID. Not what actual final method will look like (Waiting on hardware to attach a perpendicular deadwheel encoder)
-        double currentTime = runtime.time();
-        while (runtime.time() - currentTime < 5) {
-            telemetry.addData("in loop", 2);
-            telemetry.update();
+    public void strafe(double power, int targetHeading, String direction, double inches) throws InterruptedException {
+        int ticks = (int)(inches/INCHES_OVER_TICKS);
+        //double startingPosition = perpendicularEncoderTracker.getCurrentPosition();
+
+        while (/*Math.abs(perpendicularEncoderTracker.getCurrentPosition() - startingPosition) < ticks*/true) {
             correction(power, targetHeading, direction, false);
             heartbeat();
         }
     }
 
     public void splineMove(double[] xcoords, double[] ycoords, double power) throws InterruptedException {
-        initialParallelEncoderPosition = parallelEncoderTracker.getCurrentPosition();
+        double startingPosition = parallelEncoderTracker.getCurrentPosition();
         Waypoint[] coords = new Waypoint[xcoords.length];
         boolean inverted = false;
 
@@ -118,21 +159,24 @@ public abstract class Auto extends LinearOpMode {
         double arclength = spline.getArcLength(); //computes arc length by adding infinitesimally small slices of sqrt( (dx/dt)^2 + (dy/dt)^2 ) (distance formula). This method uses integration, a fundamental component in calculus
         int lastAngle = (int)currentAngle();
         while (t<1.0) {
+            trackPosition();
             heartbeat();
             //constantly adjusts heading based on what the current spline angle should be based on the calculated t
             correction(power, (int)(180/Math.PI*spline.getAngle(t, Math.PI/180*lastAngle)), "spline", inverted); //converts lastAngle to radians
             lastAngle = (int)(180/Math.PI*spline.getAngle(t, Math.PI/180*lastAngle)); //converts lastAngle to degrees for telemetry
             //distanceTraveled computed by converting encoderTraveled ticks on deadwheel to inches traveled
-            distanceTraveled = INCHES_OVER_TICKS*(parallelEncoderTracker.getCurrentPosition()-initialParallelEncoderPosition);
+            distanceTraveled = INCHES_OVER_TICKS*(parallelEncoderTracker.getCurrentPosition()-startingPosition);
             //t measures progress along curve. Very important for computing splineAngle.
             t = Math.abs(distanceTraveled/arclength);
-            telemetry.addData("Distance ", distanceTraveled);
+            /*telemetry.addData("Distance ", distanceTraveled);
             telemetry.addData("t ", t);
             telemetry.addData("error", currentAngle() - lastAngle);
             telemetry.addData("dxdt", spline.getdxdt(t));
             telemetry.addData("spline angle", (int)(180/Math.PI*spline.getAngle(t, Math.PI/180*lastAngle)));
-            telemetry.update();
+            telemetry.update();*/
         }
+        halt();
+        pause(5);
     }
 
     public void turn(double heading, double power, String direction) throws InterruptedException {
@@ -140,7 +184,7 @@ public abstract class Auto extends LinearOpMode {
         double current = currentAngle();
 
         //leaves room for small error by converting to int as fast turning isn't that accurate at times
-        while ((int)heading != (int)currentAngle()) {
+        while ((int) heading != (int) currentAngle()) {
             turn(direction, power);
             heartbeat();
         }
@@ -188,18 +232,10 @@ public abstract class Auto extends LinearOpMode {
 
         //PD correction for both regular and spline motion
         if (movementType.contains("straight") || movementType.contains("spline")) {
-            if (!inverted) {
-                leftFront.setPower(Range.clip(power + ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
-                rightFront.setPower(Range.clip(power - ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
-                leftBack.setPower(Range.clip(power + ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
-                rightBack.setPower(Range.clip(power - ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
-            }
-            else {
-                leftFront.setPower(Range.clip(power + BackwardsHeadingPID.getCorrection(current - target, runtime), -1.0, 1.0));
-                rightFront.setPower(Range.clip(power - BackwardsHeadingPID.getCorrection(current - target, runtime), -1.0, 1.0));
-                leftBack.setPower(Range.clip(power + BackwardsHeadingPID.getCorrection(current - target, runtime), -1.0, 1.0));
-                rightBack.setPower(Range.clip(power - BackwardsHeadingPID.getCorrection(current - target, runtime), -1.0, 1.0));
-            }
+            leftFront.setPower(Range.clip(power + ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
+            rightFront.setPower(Range.clip(power - ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
+            leftBack.setPower(Range.clip(power + ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
+            rightBack.setPower(Range.clip(power - ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
         }
 
         //pd correction for strafe motion. Right and left are opposites
@@ -222,16 +258,26 @@ public abstract class Auto extends LinearOpMode {
         telemetry.update();
     }
 
-    public void trackPosition(double lastAngle) {
-        int changeInParallelPos = parallelEncoderTracker.getCurrentPosition() - initialParallelEncoderPosition;
-        int changeInPerpendicularPos = perpendicularEncoderTracker.getCurrentPosition() - initialPerpendicularEncoderPosition;
+    public void trackPosition() throws InterruptedException {
+        pause(.05);
+        //trig calculated before changeInParallelPos determined because the calculation takes too long and otherwise skews distance
+        double cosAngle = Math.cos(currentAngle()*Math.PI/180);
+        double sinAngle = Math.sin(currentAngle()*Math.PI/180);
+        double changeInParallelPos = (parallelEncoderTracker.getCurrentPosition() - initialParallelEncoderPosition)*INCHES_OVER_TICKS;
+        //int changeInPerpendicularPos = perpendicularEncoderTracker.getCurrentPosition() - initialPerpendicularEncoderPosition;
 
         //sign of perpendicularPos trig may be subject to change in future when we test
-        xPos += (changeInParallelPos * Math.cos(currentAngle()) - changeInPerpendicularPos * Math.sin(currentAngle()));
-        yPos += (changeInParallelPos * Math.sin(currentAngle()) + changeInPerpendicularPos * Math.cos(currentAngle()));
+        xPos += (changeInParallelPos*cosAngle); //* Math.cos(currentAngle()); //- changeInPerpendicularPos * Math.sin(currentAngle()));
+        yPos += (changeInParallelPos*sinAngle); //+ changeInPerpendicularPos * Math.cos(currentAngle()));
 
         initialParallelEncoderPosition = parallelEncoderTracker.getCurrentPosition();
-        initialPerpendicularEncoderPosition = parallelEncoderTracker.getCurrentPosition();
+        //initialPerpendicularEncoderPosition = perpendicularEncoderTracker.getCurrentPosition();
+
+        telemetry.addData("change in parallelPos", changeInParallelPos);
+        telemetry.addData("Cos angle", Math.cos(currentAngle()*Math.PI/180));
+        telemetry.addData("x pos", xPos);
+        telemetry.addData("y pos", yPos);
+        telemetry.update();
     }
 
     public void halt() {
@@ -244,6 +290,9 @@ public abstract class Auto extends LinearOpMode {
         double pause = runtime.time();
         //pause robot for "pause" seconds
         while (runtime.time() - pause < time) {
+            telemetry.addData("XPos", xPos);
+            telemetry.addData("YPos", yPos);
+            telemetry.update();
             heartbeat();
         }
     }

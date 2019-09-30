@@ -18,25 +18,22 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
  * Created by Justin Milushev on 9/7/2018.
  */
 public class GamerOp extends OpMode {
-    //initialize objects
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotorEx leftFrontDrive, leftRearDrive, rightFrontDrive, rightRearDrive;
+    private DcMotorEx leftFront, leftBack, rightFront, rightBack;
+    private Servo frontPlatformLatcher, backPlatformLatcher;
     private boolean precision, direction;
     private boolean canTogglePrecision, canToggleDirection, strafeMode;
-    BNO055IMU imu;
-    Orientation angles;
-    Acceleration gravity; //might delete
 
     @Override
     public void init() {
         //after driver hits init
         setUpMotors();
+        setUpServos();
 
         precision = false;
         direction = false;
         strafeMode = false;
 
-        // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
     }
 
@@ -60,7 +57,7 @@ public class GamerOp extends OpMode {
     }
 
     public void driveBot() {
-        // Precision mode toggled by pressing A
+        // Precision mode toggled by pressing right stick
         if (gamepad1.right_stick_button && canTogglePrecision) {
             precision = !precision;
             canTogglePrecision = false;
@@ -84,9 +81,9 @@ public class GamerOp extends OpMode {
         double powerAngle = 0;
 
         if (!strafeMode)
-            powerAngle = stickAngle - (Math.PI / 4); // conversion for correct power values
+            powerAngle = stickAngle - (Math.PI / 4); //conversion for correct power values
         else
-            powerAngle = stickAngle - (3 * Math.PI / 4); // conversion for correct power values
+            powerAngle = stickAngle - (3 * Math.PI / 4); //conversion for correct power values
 
         double rightX = gamepad1.right_stick_x;
 
@@ -95,37 +92,39 @@ public class GamerOp extends OpMode {
         final double rightFrontPower = Range.clip(x * Math.sin(powerAngle) + rightX, -1.0, 1.0);
         final double rightRearPower = Range.clip(x * Math.cos(powerAngle) + rightX, -1.0, 1.0);
 
-        //(Code Below) If (?) precision than 0.1 else (:) 1
-        leftFrontDrive.setPower(leftFrontPower * (precision ? 0.2 : 1.0));
-        leftRearDrive.setPower(leftRearPower * (precision ? 0.2 : 1.0));
-        rightFrontDrive.setPower(rightFrontPower * (precision ? 0.2 : 1.0));
-        rightRearDrive.setPower(rightRearPower * (precision ? 0.2 : 1.0));
+        //If (?) precision, set up to .2 of power. Else (:) 1.0 of power
+        leftFront.setPower(leftFrontPower * (precision ? 0.2 : 1.0));
+        leftBack.setPower(leftRearPower * (precision ? 0.2 : 1.0));
+        rightFront.setPower(rightFrontPower * (precision ? 0.2 : 1.0));
+        rightBack.setPower(rightRearPower * (precision ? 0.2 : 1.0));
 
-        // Send DS wheel power values.
         telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftRearPower, rightRearPower);
     }
 
     public void setUpMotors() {
-        leftFrontDrive = (DcMotorEx) hardwareMap.dcMotor.get("leftFront");
-        leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftRearDrive = (DcMotorEx) hardwareMap.dcMotor.get("leftBack");
-        leftRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightFrontDrive = (DcMotorEx) hardwareMap.dcMotor.get("rightFront");
-        rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightRearDrive = (DcMotorEx) hardwareMap.dcMotor.get("rightBack");
-        rightRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftFront = (DcMotorEx) hardwareMap.dcMotor.get("leftFront");
+        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftBack = (DcMotorEx) hardwareMap.dcMotor.get("leftBack");
+        leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFront = (DcMotorEx) hardwareMap.dcMotor.get("rightFront");
+        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBack = (DcMotorEx) hardwareMap.dcMotor.get("rightBack");
+        rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftRearDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightRearDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        //Left Motor is being reversed as its direction is reverse of what is needed to drive forward
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftRearDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightRearDrive.setDirection(DcMotor.Direction.REVERSE);
+        //Right and left motors facing opposite direction so right motors set to reverse
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        rightBack.setDirection(DcMotor.Direction.REVERSE);
+    }
+
+    public void setUpServos() {
+        frontPlatformLatcher = hardwareMap.servo.get("frontLatcher");
+        backPlatformLatcher = hardwareMap.servo.get("backLatcher");
     }
 
     @Override
