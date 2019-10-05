@@ -19,15 +19,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
  */
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotorEx leftFront, leftBack, rightFront, rightBack;
+    private DcMotorEx leftFront, leftBack, rightFront, rightBack, slide;
     private Servo frontPlatformLatcher, backPlatformLatcher;
     private boolean precision, direction;
     private boolean canTogglePrecision, canToggleDirection, strafeMode;
+    private int baseSlidePosition;
 
     @Override
     public void init() {
         //after driver hits init
-        setUpMotors();
+        setUpDriveTrain();
+        setUpSlide();
         setUpServos();
 
         precision = false;
@@ -35,6 +37,40 @@ public class GamerOp extends OpMode {
         strafeMode = false;
 
         telemetry.addData("Status", "Initialized");
+    }
+
+    public void setUpDriveTrain() {
+        leftFront = (DcMotorEx) hardwareMap.dcMotor.get("leftFront");
+        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftBack = (DcMotorEx) hardwareMap.dcMotor.get("leftBack");
+        leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFront = (DcMotorEx) hardwareMap.dcMotor.get("rightFront");
+        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBack = (DcMotorEx) hardwareMap.dcMotor.get("rightBack");
+        rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        //Right and left motors facing opposite direction so right motors set to reverse
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        rightBack.setDirection(DcMotor.Direction.REVERSE);
+    }
+
+    public void setUpSlide() {
+        slide = (DcMotorEx) hardwareMap.dcMotor.get("slide");
+        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        baseSlidePosition = slide.getCurrentPosition();
+    }
+
+    public void setUpServos() {
+        //frontPlatformLatcher = hardwareMap.servo.get("frontLatcher");
+        //backPlatformLatcher = hardwareMap.servo.get("backLatcher");
     }
 
     @Override
@@ -54,6 +90,7 @@ public class GamerOp extends OpMode {
     public void loop() {
         telemetry.update();
         driveBot();
+        moveSlide();
     }
 
     public void driveBot() {
@@ -102,29 +139,14 @@ public class GamerOp extends OpMode {
         telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftRearPower, rightRearPower);
     }
 
-    public void setUpMotors() {
-        leftFront = (DcMotorEx) hardwareMap.dcMotor.get("leftFront");
-        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftBack = (DcMotorEx) hardwareMap.dcMotor.get("leftBack");
-        leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightFront = (DcMotorEx) hardwareMap.dcMotor.get("rightFront");
-        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightBack = (DcMotorEx) hardwareMap.dcMotor.get("rightBack");
-        rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    public void moveSlide() {
+        if (slide.getCurrentPosition() <= baseSlidePosition + 200 || slide.getCurrentPosition() >= baseSlidePosition - 500) {
+        }
 
-        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        //Right and left motors facing opposite direction so right motors set to reverse
-        rightFront.setDirection(DcMotor.Direction.REVERSE);
-        rightBack.setDirection(DcMotor.Direction.REVERSE);
-    }
-
-    public void setUpServos() {
-        frontPlatformLatcher = hardwareMap.servo.get("frontLatcher");
-        backPlatformLatcher = hardwareMap.servo.get("backLatcher");
+        slide.setPower(gamepad1.right_stick_y);
+        telemetry.addData("slide power", slide.getPower());
+        telemetry.addData("slide position", slide.getCurrentPosition());
+        telemetry.update();
     }
 
     @Override

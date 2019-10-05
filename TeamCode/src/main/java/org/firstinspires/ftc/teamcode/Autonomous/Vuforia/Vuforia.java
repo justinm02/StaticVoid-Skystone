@@ -46,6 +46,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
+import org.firstinspires.ftc.teamcode.Autonomous.AutoOp;
 
 /**
  * This 2019-2020 OpMode illustrates the basics of using the Vuforia localizer to determine
@@ -133,7 +134,13 @@ public class Vuforia {
 
     private double yPosition;
 
-    public double getYPosition(VuforiaLocalizer.Parameters parameters) {
+    private VuforiaTrackables targetsSkyStone;
+    private List<VuforiaTrackable> allTrackables;
+
+    private AutoOp auto = new AutoOp();
+
+
+    public void initVuforia(VuforiaLocalizer.Parameters parameters) {
         /*
          * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
          * We can pass Vuforia the handle to a camera preview resource (on the RC phone);
@@ -150,7 +157,7 @@ public class Vuforia {
 
         // Load the data sets for the trackable objects. These particular data
         // sets are stored in the 'assets' part of our application.
-        VuforiaTrackables targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
+        targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
 
         VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
         stoneTarget.setName("Stone Target");
@@ -180,7 +187,7 @@ public class Vuforia {
         rear2.setName("Rear Perimeter 2");
 
         // For convenience, gather together all the trackable objects in one easily-iterable collection */
-        List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
+        allTrackables = new ArrayList<VuforiaTrackable>();
         allTrackables.addAll(targetsSkyStone);
 
         /**
@@ -299,6 +306,10 @@ public class Vuforia {
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
         }
 
+    }
+
+    public double getYPosition() {
+
         // WARNING:
         // In this sample, we do not wait for PLAY to be pressed.  Target Tracking is started immediately when INIT is pressed.
         // This sequence is used to enable the new remote DS Camera Preview feature to be used with this sample.
@@ -313,6 +324,7 @@ public class Vuforia {
 
         targetsSkyStone.activate();
         while (!targetVisible) {
+            auto.correction(.25, 0, "straferight", false);
 
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;

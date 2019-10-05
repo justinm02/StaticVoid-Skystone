@@ -26,7 +26,7 @@ public abstract class Auto extends LinearOpMode {
     private BNO055IMU imu;
     private PID ForwardHeadingPid = new PID(0.01, 0, 0.01);
     private PID BackwardsHeadingPID = new PID(0, 0, 0);
-    private PID strafePID = new PID(0, 0, 0); //still need to be determined and tuned
+    private PID strafePID = new PID(.05, 0, 0); //still need to be determined and tuned
     public int initialParallelEncoderPosition;
     public int initialPerpendicularEncoderPosition;
     private double xPos = 0;
@@ -94,11 +94,13 @@ public abstract class Auto extends LinearOpMode {
     public void initVuforia() {
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+        vuforia.initVuforia(parameters);
     }
 
     public void determineSkystonePlacement() throws InterruptedException {
-        correction(.25, 0, "strafeleft", false);
-        double yPosition = vuforia.getYPosition(parameters);
+        double yPosition = vuforia.getYPosition();
+
+        halt();
 
         double current = runtime.time();
 
@@ -159,7 +161,7 @@ public abstract class Auto extends LinearOpMode {
         double arclength = spline.getArcLength(); //computes arc length by adding infinitesimally small slices of sqrt( (dx/dt)^2 + (dy/dt)^2 ) (distance formula). This method uses integration, a fundamental component in calculus
         int lastAngle = (int)currentAngle();
         while (t<1.0) {
-            trackPosition();
+            //trackPosition();
             heartbeat();
             //constantly adjusts heading based on what the current spline angle should be based on the calculated t
             correction(power, (int)(180/Math.PI*spline.getAngle(t, Math.PI/180*lastAngle)), "spline", inverted); //converts lastAngle to radians
@@ -168,12 +170,12 @@ public abstract class Auto extends LinearOpMode {
             distanceTraveled = INCHES_OVER_TICKS*(parallelEncoderTracker.getCurrentPosition()-startingPosition);
             //t measures progress along curve. Very important for computing splineAngle.
             t = Math.abs(distanceTraveled/arclength);
-            /*telemetry.addData("Distance ", distanceTraveled);
+            telemetry.addData("Distance ", distanceTraveled);
             telemetry.addData("t ", t);
             telemetry.addData("error", currentAngle() - lastAngle);
             telemetry.addData("dxdt", spline.getdxdt(t));
             telemetry.addData("spline angle", (int)(180/Math.PI*spline.getAngle(t, Math.PI/180*lastAngle)));
-            telemetry.update();*/
+            telemetry.update();
         }
         halt();
         pause(5);
@@ -241,16 +243,16 @@ public abstract class Auto extends LinearOpMode {
         //pd correction for strafe motion. Right and left are opposites
         else if (movementType.contains("strafe")) {
             if (movementType.contains("left")) {
-                leftFront.setPower(Range.clip(-power + strafePID.getCorrection(current - target, runtime), -1.0, 0.0));
-                rightFront.setPower(Range.clip(power + strafePID.getCorrection(current - target, runtime), 0.0, 1.0));
-                leftBack.setPower(Range.clip(power - strafePID.getCorrection(current - target, runtime), 0.0, 1.0));
-                rightBack.setPower(Range.clip(-power - strafePID.getCorrection(current - target, runtime), -1.0, 0));
+                leftFront.setPower(Range.clip(-power - strafePID.getCorrection(current - target, runtime), -1.0, 1.0));
+                rightFront.setPower(Range.clip(power/* - strafePID.getCorrection(current - target, runtime)*/, -1.0, 1.0));
+                leftBack.setPower(Range.clip(power/* + strafePID.getCorrection(current - target, runtime)*/, -1.0, 1.0));
+                rightBack.setPower(Range.clip(-power - strafePID.getCorrection(current - target, runtime), -1.0, 1.0));
             }
             else if (movementType.contains("right")) {
-                leftFront.setPower(Range.clip(power - strafePID.getCorrection(current - target, runtime), 0.0, 1.0));
-                rightFront.setPower(Range.clip(-power - strafePID.getCorrection(current - target, runtime), -1.0, 0.0));
-                leftBack.setPower(Range.clip(-power + strafePID.getCorrection(current - target, runtime), -1.0, 0.0));
-                rightBack.setPower(Range.clip(power + strafePID.getCorrection(current - target, runtime), 0.0, 1.0));
+                leftFront.setPower(Range.clip(power/* + strafePID.getCorrection(current - target, runtime)*/, -1.0, 1.0));
+                rightFront.setPower(Range.clip(-power/* + strafePID.getCorrection(current - target, runtime)*/, -1.0, 1.0));
+                leftBack.setPower(Range.clip(-power /*- strafePID.getCorrection(current - target, runtime)*/, -1.0, 1.0));
+                rightBack.setPower(Range.clip(power - strafePID.getCorrection(current - target, runtime), -1.0, 1.0));
             }
         }
 
