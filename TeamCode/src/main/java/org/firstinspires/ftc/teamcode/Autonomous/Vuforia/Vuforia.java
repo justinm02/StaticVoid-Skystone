@@ -137,8 +137,6 @@ public class Vuforia {
     private VuforiaTrackables targetsSkyStone;
     private List<VuforiaTrackable> allTrackables;
 
-    private AutoOp auto = new AutoOp();
-
 
     public void initVuforia(VuforiaLocalizer.Parameters parameters) {
         /*
@@ -324,7 +322,6 @@ public class Vuforia {
 
         targetsSkyStone.activate();
         while (!targetVisible) {
-            auto.correction(.25, 0, "straferight", false);
 
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;

@@ -17,12 +17,26 @@ public class AutoOp extends Auto {
 
             //move(0, .25, "straight");
 
-            double xcoords2[] = {0, 40, 40};
-            double ycoords2[] = {0, 0, -40};
+            double xcoords2[] = new double[]{0, 6, 6};
+            double ycoords2[] = new double[]{0, 0, -8};
+
+            if (determineSkystonePlacement().equals(SKYSTONE_POSITION.LEFT)) {
+                xcoords2 = new double[]{0, 14, 14};
+                ycoords2 = new double[]{0, 0, -8};
+            }
+            else if (determineSkystonePlacement().equals(SKYSTONE_POSITION.MIDDLE)) {
+                xcoords2 = new double[]{0, 14, 14};
+                ycoords2 = new double[]{0, 0, -8};
+            }
 
             //strafe(.3, 0, "straferight", 200);
+            pause(.25);
 
-            splineMove(xcoords2, ycoords2, .1); //backwards spline from cube to bridge, ending in same orientation
+            splineMove(xcoords2, ycoords2, .25); //backwards spline from cube to bridge, ending in same orientation
+
+            move(-90, .3, 7, "straight");
+
+
         }
         catch (InterruptedException e) { }
     }

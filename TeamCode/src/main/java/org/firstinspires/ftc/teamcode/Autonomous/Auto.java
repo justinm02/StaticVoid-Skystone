@@ -39,6 +39,12 @@ public abstract class Auto extends LinearOpMode {
     private int cameraMonitorViewId;
     private VuforiaLocalizer.Parameters parameters;
 
+    enum SKYSTONE_POSITION {
+        LEFT,
+        MIDDLE,
+        RIGHT
+    }
+
     public void initialize() {
         initMotors();
         initServos();
@@ -97,28 +103,27 @@ public abstract class Auto extends LinearOpMode {
         vuforia.initVuforia(parameters);
     }
 
-    public void determineSkystonePlacement() throws InterruptedException {
+    public SKYSTONE_POSITION determineSkystonePlacement() throws InterruptedException {
+        correction(.3, 0, "straferight", false);
         double yPosition = vuforia.getYPosition();
 
         halt();
 
-        double current = runtime.time();
-
-        while (runtime.time() - current < 5) {
-            heartbeat();
-            telemetry.addData("yPosition", yPosition);
-            telemetry.update();
-        }
+        if (yPosition > 6)
+            return SKYSTONE_POSITION.RIGHT;
+        else if (yPosition < -3 && yPosition < 3)
+            return SKYSTONE_POSITION.MIDDLE;
+        return SKYSTONE_POSITION.LEFT;
     }
 
-    public void move(double targetHeading, double power, String direction) throws InterruptedException {
+    public void move(double targetHeading, double power, int distance, String direction) throws InterruptedException {
         double startingPosition = parallelEncoderTracker.getCurrentPosition();
         boolean inverted = false;
 
         if (power < 0)
             inverted = true;
 
-        int target = 100000; //just a random high value used for only PID testing purposes atm. 100000 ticks has no real significance
+        int target = (int)(distance/INCHES_OVER_TICKS); //how many ticks robot will travel
 
         while (Math.abs(startingPosition - parallelEncoderTracker.getCurrentPosition()) < target) {
             correction(power, targetHeading, direction, inverted);
@@ -127,6 +132,7 @@ public abstract class Auto extends LinearOpMode {
         }
 
         halt();
+        pause(.25);
     }
 
     public void strafe(double power, int targetHeading, String direction, double inches) throws InterruptedException {
@@ -137,6 +143,8 @@ public abstract class Auto extends LinearOpMode {
             correction(power, targetHeading, direction, false);
             heartbeat();
         }
+        //halt();
+        //pause(.25);
     }
 
     public void splineMove(double[] xcoords, double[] ycoords, double power) throws InterruptedException {
@@ -177,8 +185,9 @@ public abstract class Auto extends LinearOpMode {
             telemetry.addData("spline angle", (int)(180/Math.PI*spline.getAngle(t, Math.PI/180*lastAngle)));
             telemetry.update();
         }
+
         halt();
-        pause(5);
+        pause(.25);
     }
 
     public void turn(double heading, double power, String direction) throws InterruptedException {
@@ -193,7 +202,6 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void turn(String direction, double power) {
-
         if (direction.equals("right")) {
             leftFront.setPower(power);
             leftBack.setPower(power);
