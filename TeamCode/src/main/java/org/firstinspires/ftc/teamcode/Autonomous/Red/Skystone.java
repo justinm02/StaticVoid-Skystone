@@ -20,7 +20,6 @@ public class Skystone extends Auto {
 
             //strafe(0, 0, "straight", 48);
             //splineMove(xcoords, ycoords, -0.4); //backwards spline from cube to bridge, ending in same orientation
-        }
-        catch (InterruptedException e) { }
+        } catch (InterruptedException e) { }
     }
 }

@@ -17,26 +17,69 @@ public class AutoOp extends Auto {
 
             //move(0, .25, "straight");
 
-            double xcoords2[] = new double[]{0, 6, 6};
-            double ycoords2[] = new double[]{0, 0, -8};
+            strafe(.3, 0, "straferight", 8);
 
-            if (determineSkystonePlacement().equals(SKYSTONE_POSITION.LEFT)) {
-                xcoords2 = new double[]{0, 14, 14};
-                ycoords2 = new double[]{0, 0, -8};
+            adjustClaw();
+            pause(1.25);
+            moveSlideByTime();
+
+            double xcoords2[];
+            double ycoords2[];
+
+            double xcoords3[];
+            double ycoords3[];
+
+            double xcoords4[];
+            double ycoords4[];
+
+            SKYSTONE_POSITION position = determineSkystonePlacement();
+
+            if (position.equals(SKYSTONE_POSITION.RIGHT)) {
+                xcoords2 = new double[]{0, 12, 12};
+                ycoords2 = new double[]{0, 0, -6};
+
+                xcoords3 = new double[]{0, 16, 3, 3};
+                ycoords3 = new double[]{0, -15, -47, -60};
+
+                xcoords4 = new double[]{0, -44, -44};
+                ycoords4 = new double[]{0, 0, -12};
+
             }
-            else if (determineSkystonePlacement().equals(SKYSTONE_POSITION.MIDDLE)) {
-                xcoords2 = new double[]{0, 14, 14};
+
+            else if (position.equals(SKYSTONE_POSITION.MIDDLE)) {
+                xcoords2 = new double[]{0, 23, 23};
                 ycoords2 = new double[]{0, 0, -8};
+
+                xcoords3 = new double[]{0, 16, 3, 3};
+                ycoords3 = new double[]{0, -15, -47, -70};
+
+                xcoords4 = new double[]{0, -56, -56};
+                ycoords4 = new double[]{0, 0, -12};
             }
 
-            //strafe(.3, 0, "straferight", 200);
-            pause(.25);
+            else {
+                move(0, -.3, 7, "straight");
 
-            splineMove(xcoords2, ycoords2, .25); //backwards spline from cube to bridge, ending in same orientation
+                xcoords2 = new double[]{0, 11, 11};
+                ycoords2 = new double[]{0, 0, -8};
 
-            move(-90, .3, 7, "straight");
+                xcoords3 = new double[]{0, 16, 3, 3};
+                ycoords3 = new double[]{0, -15, -47, -55};
 
+                xcoords4 = new double[]{0, -56, -56};
+                ycoords4 = new double[]{0, 0, -12};
+            }
 
+            splineMove(xcoords2, ycoords2, .25, 0); //backwards spline from cube to bridge, ending in same orientation
+
+            move(-90, .3, 18, "straight");
+
+            gripBlock();
+            pause(1);
+
+            move(-90, -.3, 32, "straight");
+
+            splineMove(xcoords3, ycoords3, .35, -Math.PI/2);
         }
         catch (InterruptedException e) { }
     }

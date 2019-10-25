@@ -26,7 +26,7 @@ public class Bezier
         }
         return new Waypoint(x,y);
     }
-    public double getAngle(double t, double lastAngle)
+    public double getAngle(double t, double lastAngle, double offset)
     {
         double dxdt = 0;
         double dydt = 0;
@@ -35,16 +35,16 @@ public class Bezier
             dydt += n*Combinatorics.nCr(n-1,i)*Math.pow(1-t,n-i-1)*Math.pow(t,i)*(yCoords[i+1]-yCoords[i]);
         }
         if(dxdt == 0) {
-            return Math.PI / 2 * Math.signum(dydt);
+            return (Math.PI / 2 * Math.signum(dydt)) + offset;
         }
         else {
             if (dxdt > 0)
-                return Math.atan(dydt / dxdt);
+                return Math.atan(dydt / dxdt) + offset;
             else {
                 double angle = Math.atan(dydt/dxdt) + Math.PI;
                 if (angle < Math.PI)
-                    return angle;
-                return angle-2*Math.PI;
+                    return angle + offset;
+                return angle-2*Math.PI + offset;
             }
         }
     }

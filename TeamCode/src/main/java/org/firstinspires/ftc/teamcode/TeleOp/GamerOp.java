@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+
 /**
  * Created by Justin Milushev on 9/7/2018.
  */
@@ -21,8 +22,10 @@ public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, slide;
     private Servo frontPlatformLatcher, backPlatformLatcher;
+    private Servo leftClaw, rightClaw;
     private boolean precision, direction;
-    private boolean canTogglePrecision, canToggleDirection, strafeMode;
+        private boolean canTogglePrecision, canToggleDirection, strafeMode;
+    private boolean useOneGamepad;
     private int baseSlidePosition;
 
     @Override
@@ -35,6 +38,7 @@ public class GamerOp extends OpMode {
         precision = false;
         direction = false;
         strafeMode = false;
+        useOneGamepad = false;
 
         telemetry.addData("Status", "Initialized");
     }
@@ -63,14 +67,18 @@ public class GamerOp extends OpMode {
         slide = (DcMotorEx) hardwareMap.dcMotor.get("slide");
         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        //slide.setDirection(DcMotor.Direction.REVERSE);
+
         slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         baseSlidePosition = slide.getCurrentPosition();
     }
 
     public void setUpServos() {
-        //frontPlatformLatcher = hardwareMap.servo.get("frontLatcher");
-        //backPlatformLatcher = hardwareMap.servo.get("backLatcher");
+        frontPlatformLatcher = hardwareMap.servo.get("frontLatcher");
+        backPlatformLatcher = hardwareMap.servo.get("backLatcher");
+        rightClaw = hardwareMap.servo.get("rightClaw");
+        leftClaw = hardwareMap.servo.get("leftClaw");
     }
 
     @Override
@@ -89,8 +97,12 @@ public class GamerOp extends OpMode {
     @Override
     public void loop() {
         telemetry.update();
+
         driveBot();
         moveSlide();
+        gripBlock();
+        gripPlatform();
+        useOneGamepad();
     }
 
     public void driveBot() {
@@ -130,23 +142,69 @@ public class GamerOp extends OpMode {
         final double rightRearPower = Range.clip(x * Math.cos(powerAngle) + rightX, -1.0, 1.0);
 
         //If (?) precision, set up to .2 of power. Else (:) 1.0 of power
-        leftFront.setPower(leftFrontPower * (precision ? 0.2 : 1.0));
-        leftBack.setPower(leftRearPower * (precision ? 0.2 : 1.0));
-        rightFront.setPower(rightFrontPower * (precision ? 0.2 : 1.0));
-        rightBack.setPower(rightRearPower * (precision ? 0.2 : 1.0));
+        leftFront.setPower(leftFrontPower * (precision ? 0.25 : 1.0));
+        leftBack.setPower(leftRearPower * (precision ? 0.25 : 1.0));
+        rightFront.setPower(rightFrontPower * (precision ? 0.25 : 1.0));
+        rightBack.setPower(rightRearPower * (precision ? 0.25 : 1.0));
 
         telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftRearPower, rightRearPower);
     }
 
     public void moveSlide() {
-        if (slide.getCurrentPosition() <= baseSlidePosition + 200 || slide.getCurrentPosition() >= baseSlidePosition - 500) {
+        if (gamepad2.dpad_up || (useOneGamepad && gamepad1.dpad_up)) {
+            slide.setPower(1);
         }
+        else if (gamepad2.dpad_down || (useOneGamepad && gamepad1.dpad_down)) {
+            slide.setPower(-1);
+        }
+        else
+            slide.setPower(0);
 
-        slide.setPower(gamepad1.right_stick_y);
         telemetry.addData("slide power", slide.getPower());
         telemetry.addData("slide position", slide.getCurrentPosition());
         telemetry.update();
+    }
+
+    public void gripBlock() {
+        if (gamepad2.a  || (useOneGamepad && gamepad1.a)) {
+            leftClaw.setPosition(0);
+            rightClaw.setPosition(1);
+        }
+        else if (gamepad2.b || (useOneGamepad && gamepad1.b)) {
+            leftClaw.setPosition(.9);
+            rightClaw.setPosition(.3);
+        }
+        else if (gamepad2.x || (useOneGamepad && gamepad1.x)) {
+            leftClaw.setPosition(0.4);
+            rightClaw.setPosition(0.6);
+        }
+        else if (gamepad2.dpad_left) {
+            rightClaw.setPosition(.3);
+        }
+        else if (gamepad2.dpad_right) {
+            leftClaw.setPosition(.9);
+        }
+
+        telemetry.addData("claw left pos", leftClaw.getPosition());
+        telemetry.addData("claw right pos", rightClaw.getPosition());
+    }
+
+    public void gripPlatform() {
+        if (gamepad2.right_bumper || (useOneGamepad && gamepad1.right_bumper)) {
+            backPlatformLatcher.setPosition(-1);
+            frontPlatformLatcher.setPosition(-1);
+        }
+        else if (gamepad2.left_bumper || (useOneGamepad && gamepad1.left_bumper)) {
+            backPlatformLatcher.setPosition(.7);
+            frontPlatformLatcher.setPosition(.7);
+        }
+    }
+
+    public void useOneGamepad() {
+        if ((gamepad1.right_bumper && gamepad1.left_bumper && gamepad1.left_trigger == 1 && gamepad1.right_trigger == 1) || (gamepad2.right_bumper && gamepad2.left_bumper && gamepad2.left_trigger == 1 && gamepad2.right_trigger == 1)) {
+            useOneGamepad = !useOneGamepad;
+        }
     }
 
     @Override
@@ -154,3 +212,4 @@ public class GamerOp extends OpMode {
 
     }
 }
+
