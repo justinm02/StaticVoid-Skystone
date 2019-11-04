@@ -26,7 +26,7 @@ public class Bezier
         }
         return new Waypoint(x,y);
     }
-    public double getAngle(double t, double lastAngle, double offset)
+    public double getAngle(double t, double offset)
     {
         double dxdt = 0;
         double dydt = 0;
@@ -34,26 +34,34 @@ public class Bezier
             dxdt += n*Combinatorics.nCr(n-1,i)*Math.pow(1-t,n-i-1)*Math.pow(t,i)*(xCoords[i+1]-xCoords[i]);
             dydt += n*Combinatorics.nCr(n-1,i)*Math.pow(1-t,n-i-1)*Math.pow(t,i)*(yCoords[i+1]-yCoords[i]);
         }
-        if(dxdt == 0) {
+        /*if(dxdt == 0) {
             return (Math.PI / 2 * Math.signum(dydt)) + offset;
         }
         else {
+            double thisAngle = offset + Math.atan(dydt/dxdt);
             if (dxdt > 0)
-                return Math.atan(dydt / dxdt) + offset;
+                return thisAngle;
             else {
-                double angle = Math.atan(dydt/dxdt) + Math.PI;
+                double angle = thisAngle + Math.PI;
                 if (angle < Math.PI)
-                    return angle + offset;
-                return angle-2*Math.PI + offset;
+                    return angle;
+                return angle-2*Math.PI;
             }
+        }*/
+        double angle = Math.atan2(dydt,dxdt);
+        angle += offset;
+        if (angle > Math.PI) {
+            return angle - 2 * Math.PI;
+        } else if (angle <= -Math.PI) {
+            return angle + 2 * Math.PI;
         }
+        return angle;
+
     }
     public double getdxdt(double t)
     {
         double dxdt = 0;
-        for(int i = 0; i <=
-
-                n-1; i++) {
+        for(int i = 0; i <= n-1; i++) {
             dxdt += n*Combinatorics.nCr(n-1,i)*Math.pow(1-t,n-i-1)*Math.pow(t,i)*(xCoords[i+1]-xCoords[i]);
         }
         return dxdt;

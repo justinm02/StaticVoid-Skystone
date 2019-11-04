@@ -11,6 +11,8 @@ public class AutoOp extends Auto {
         waitForStart();
 
         try {
+            ALLIANCE_COLOR color = ALLIANCE_COLOR.RED;
+
             //(x0, y0), (x1, y1), ..., (x3, y3)
             double xcoords1[] = {0.0, 10, 0.0, 10};
             double ycoords1[] = {0.0, 0.0, 60, 60};
@@ -21,7 +23,6 @@ public class AutoOp extends Auto {
 
             adjustClaw();
             pause(1.25);
-            moveSlideByTime();
 
             double xcoords2[];
             double ycoords2[];
@@ -32,7 +33,7 @@ public class AutoOp extends Auto {
             double xcoords4[];
             double ycoords4[];
 
-            SKYSTONE_POSITION position = determineSkystonePlacement();
+            SKYSTONE_POSITION position = determineSkystonePlacement(color);
 
             if (position.equals(SKYSTONE_POSITION.RIGHT)) {
                 xcoords2 = new double[]{0, 12, 12};
@@ -80,6 +81,7 @@ public class AutoOp extends Auto {
             move(-90, -.3, 32, "straight");
 
             splineMove(xcoords3, ycoords3, .35, -Math.PI/2);
+            adjustClaw();
         }
         catch (InterruptedException e) { }
     }

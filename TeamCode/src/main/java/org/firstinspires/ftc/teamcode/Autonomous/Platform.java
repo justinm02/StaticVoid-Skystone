@@ -11,13 +11,17 @@ public class Platform extends Auto {
         waitForStart();
 
         try {
-            //(x0, y0), (x1, y1), ..., (x3, y3)
-            double xcoords[] = {0.0, 10, 0.0, 10};
-            double ycoords[] = {0.0, 0.0, 60, 60};
+            strafe(.35, 0, "strafeleft", 54);
 
-            //strafe(0, 0, "straight", 48);
-            //splineMove(xcoords, ycoords, -0.4); //backwards spline from cube to bridge, ending in same orientation
-            strafe(.5, 0, "straferight", 200);
+            pause(.25);
+
+            move(0, .3, 6, "straight");
+
+            gripPlatform();
+
+            pause(1);
+
+            strafe(.3, 0, "straferight", 54);
         }
         catch (InterruptedException e) { }
     }

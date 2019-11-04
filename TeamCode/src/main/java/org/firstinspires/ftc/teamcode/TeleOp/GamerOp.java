@@ -124,9 +124,6 @@ public class GamerOp extends OpMode {
         double x = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
         double stickAngle = Math.atan2(direction ? -gamepad1.left_stick_y : gamepad1.left_stick_y, direction ? gamepad1.left_stick_x : -gamepad1.left_stick_x); // desired robot angle from the angle of stick
 
-        if (gamepad1.right_bumper)
-            strafeMode = !strafeMode;
-
         double powerAngle = 0;
 
         if (!strafeMode)
@@ -142,10 +139,10 @@ public class GamerOp extends OpMode {
         final double rightRearPower = Range.clip(x * Math.cos(powerAngle) + rightX, -1.0, 1.0);
 
         //If (?) precision, set up to .2 of power. Else (:) 1.0 of power
-        leftFront.setPower(leftFrontPower * (precision ? 0.25 : 1.0));
-        leftBack.setPower(leftRearPower * (precision ? 0.25 : 1.0));
-        rightFront.setPower(rightFrontPower * (precision ? 0.25 : 1.0));
-        rightBack.setPower(rightRearPower * (precision ? 0.25 : 1.0));
+        leftFront.setPower(leftFrontPower * (precision ? 0.3 : 1.0));
+        leftBack.setPower(leftRearPower * (precision ? 0.3 : 1.0));
+        rightFront.setPower(rightFrontPower * (precision ? 0.3 : 1.0));
+        rightBack.setPower(rightRearPower * (precision ? 0.3 : 1.0));
 
         telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftRearPower, rightRearPower);
@@ -168,22 +165,22 @@ public class GamerOp extends OpMode {
 
     public void gripBlock() {
         if (gamepad2.a  || (useOneGamepad && gamepad1.a)) {
-            leftClaw.setPosition(0);
-            rightClaw.setPosition(1);
+            leftClaw.setPosition(0.1);
+            rightClaw.setPosition(0.9);
         }
         else if (gamepad2.b || (useOneGamepad && gamepad1.b)) {
-            leftClaw.setPosition(.9);
-            rightClaw.setPosition(.3);
+            leftClaw.setPosition(.6);
+            rightClaw.setPosition(.35);
         }
         else if (gamepad2.x || (useOneGamepad && gamepad1.x)) {
-            leftClaw.setPosition(0.4);
-            rightClaw.setPosition(0.6);
+            leftClaw.setPosition(0.42);
+            rightClaw.setPosition(0.58);
         }
         else if (gamepad2.dpad_left) {
-            rightClaw.setPosition(.3);
+            rightClaw.setPosition(.35);
         }
         else if (gamepad2.dpad_right) {
-            leftClaw.setPosition(.9);
+            leftClaw.setPosition(.6);
         }
 
         telemetry.addData("claw left pos", leftClaw.getPosition());
@@ -191,11 +188,11 @@ public class GamerOp extends OpMode {
     }
 
     public void gripPlatform() {
-        if (gamepad2.right_bumper || (useOneGamepad && gamepad1.right_bumper)) {
+        if (gamepad1.right_bumper) {
             backPlatformLatcher.setPosition(-1);
             frontPlatformLatcher.setPosition(-1);
         }
-        else if (gamepad2.left_bumper || (useOneGamepad && gamepad1.left_bumper)) {
+        else if (gamepad1.left_bumper) {
             backPlatformLatcher.setPosition(.7);
             frontPlatformLatcher.setPosition(.7);
         }
