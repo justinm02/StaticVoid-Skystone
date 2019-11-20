@@ -20,14 +20,14 @@ import org.firstinspires.ftc.teamcode.Autonomous.Vuforia.Vuforia;
 import com.qualcomm.robotcore.util.Range;
 
 public abstract class Auto extends LinearOpMode {
-    private ElapsedTime runtime;
+    public ElapsedTime runtime;
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, slide, parallelEncoderTracker, perpendicularEncoderTracker;
     private DcMotorEx[] motors;
-    private Servo frontPlatformLatcher, backPlatformLatcher, leftClaw, rightClaw;
+    private Servo frontPlatformLatcher, backPlatformLatcher, leftClaw, rightClaw, capStick;
     private BNO055IMU imu;
     private PID ForwardHeadingPid = new PID(0.0175, 0, 0.010);
     private PID BackwardsHeadingPID = new PID(0, 0, 0);
-    private PID strafePID = new PID(0.01, 0, 0.001); //still need to be determined and tuned
+    private PID strafePID = new PID(0.01, 0, 0); //still need to be determined and tuned
     public int initialParallelEncoderPosition;
     public int initialPerpendicularEncoderPosition;
     private double xPos = 0;
@@ -107,6 +107,9 @@ public abstract class Auto extends LinearOpMode {
 
         leftClaw = hardwareMap.servo.get("leftClaw");
         rightClaw = hardwareMap.servo.get("rightClaw");
+
+        capStick = hardwareMap.servo.get("capStick");
+        capStick.setPosition(.2);
     }
 
     public void initGyro() {
@@ -129,10 +132,12 @@ public abstract class Auto extends LinearOpMode {
         double yPosition = 0;
         double inches = 16;
 
+        double startingPosition = leftFront.getCurrentPosition();
+
         vuforia.targetsSkyStone.activate();
         pause(0.5);
 
-        while (!vuforia.targetVisible && motorsBusy((int)(inches*C*STRAFE_COEFFICIENT))) {
+        while (!vuforia.targetVisible && motorsBusy((int)(inches*C*STRAFE_COEFFICIENT), startingPosition)) {
             heartbeat();
             correction(.125, 0, "straferight", false);
             if (Math.abs(baseSlidePosition - slide.getCurrentPosition()) < 300) {
@@ -160,7 +165,7 @@ public abstract class Auto extends LinearOpMode {
         vuforia.targetsSkyStone.deactivate();
 
         if (color.equals(ALLIANCE_COLOR.RED)) {
-            return determineRedPosition(motorsBusy((int)(inches*C*STRAFE_COEFFICIENT)), yPosition);
+            return determineRedPosition(motorsBusy((int)(inches*C*STRAFE_COEFFICIENT), startingPosition), yPosition);
         }
         return determineBluePosition(yPosition);
     }
@@ -184,19 +189,26 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void move(double targetHeading, double power, int distance, String direction) throws InterruptedException {
-        double startingPosition = parallelEncoderTracker.getCurrentPosition();
         boolean inverted = false;
 
         if (power < 0)
             inverted = true;
 
-        int target = (int)(distance/PARALLEL_INCHES_OVER_TICKS); //how many ticks robot will travel
+        int target = (int)(distance*C); //how many ticks robot will travel
 
         double current = runtime.time();
 
-        while (Math.abs(startingPosition - parallelEncoderTracker.getCurrentPosition()) < target && runtime.time() - current < 3.5) {
+        resetMotors();
+
+        double startingPosition = leftFront.getCurrentPosition();
+
+        while (motorsBusy(target, startingPosition)) {
             correction(power, targetHeading, direction, inverted);
-            telemetry.addData("diff", Math.abs(parallelEncoderTracker.getCurrentPosition()-startingPosition)*PARALLEL_INCHES_OVER_TICKS);
+            //telemetry.addData("diff", Math.abs(parallelEncoderTracker.getCurrentPosition()-startingPosition)*PARALLEL_INCHES_OVER_TICKS);
+            telemetry.addData("lf", leftFront.getCurrentPosition());
+            telemetry.addData("lb", leftBack.getCurrentPosition());
+            telemetry.addData("rf", rightFront.getCurrentPosition());
+            telemetry.addData("rb", rightBack.getCurrentPosition());
             telemetry.addData("parallel", parallelEncoderTracker.getCurrentPosition());
             telemetry.update();
             //trackPosition();
@@ -228,20 +240,21 @@ public abstract class Auto extends LinearOpMode {
         int ticks = (int)(inches*C*STRAFE_COEFFICIENT);
 
         resetMotors();
+        double startingPosition = leftFront.getCurrentPosition();
         //double startingPosition = perpendicularEncoderTracker.getCurrentPosition();
 
-        while (motorsBusy(ticks)) {
+        while (motorsBusy(ticks, startingPosition)) {
             correction(power, targetHeading, direction, false);
             heartbeat();
-            telemetry.addData("leftBack ticks", Math.abs(leftBack.getCurrentPosition()));
+            /*telemetry.addData("leftBack ticks", Math.abs(leftBack.getCurrentPosition()));
             telemetry.addData("target", ticks);
-            telemetry.update();
+            telemetry.update();*/
         }
         halt();
     }
 
-    public boolean motorsBusy(int ticks) {
-        return Math.abs(leftBack.getCurrentPosition()) < ticks && Math.abs(rightBack.getCurrentPosition()) < ticks && Math.abs(leftFront.getCurrentPosition()) < ticks && Math.abs(rightFront.getCurrentPosition()) < ticks;
+    public boolean motorsBusy(int ticks, double startingPosition) {
+        return Math.abs(leftBack.getCurrentPosition() - startingPosition) < ticks && Math.abs(rightBack.getCurrentPosition() - startingPosition) < ticks && Math.abs(leftFront.getCurrentPosition() - startingPosition) < ticks && Math.abs(rightFront.getCurrentPosition() - startingPosition) < ticks;
     }
 
     public void resetMotors() {
@@ -287,13 +300,13 @@ public abstract class Auto extends LinearOpMode {
             distanceTraveled = PARALLEL_INCHES_OVER_TICKS*(parallelEncoderTracker.getCurrentPosition()-startingPosition);
             //t measures progress along curve. Very important for computing splineAngle.
             t = Math.abs(distanceTraveled/arclength);
-            telemetry.addData("Distance ", distanceTraveled);
+            /*telemetry.addData("Distance ", distanceTraveled);
             telemetry.addData("t ", t);
             telemetry.addData("error", currentAngle() - lastAngle);
             telemetry.addData("dxdt", spline.getdxdt(t));
             telemetry.addData("spline angle", (int)(180/Math.PI*spline.getAngle(t, offset)));
             telemetry.addData("current angle", currentAngle());
-            telemetry.update();
+            telemetry.update();*/
         }
 
         halt();
@@ -327,13 +340,13 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void turn(String direction, double power) {
-        if (direction.equals("ccw")) {
+        if (direction.equals("cw")) {
             leftFront.setPower(power);
             leftBack.setPower(power);
             rightFront.setPower(-power);
             rightBack.setPower(-power);
         }
-        else if (direction.equals("cw")) {
+        else if (direction.equals("ccw")) {
             leftFront.setPower(-power);
             leftBack.setPower(-power);
             rightFront.setPower(power);
@@ -358,52 +371,59 @@ public abstract class Auto extends LinearOpMode {
         }
 
         //when axis between -179 and 179 degrees is crossed, degrees must be converted from 0 - 360 degrees. 179-(-179) = 358. 179 - 181 = -2. Big difference
-        if (targetHeading < -135 && currentAngle() > 135) {
+        /*if (targetHeading < -175 && currentAngle() > 175) {
             target = targetHeading + 360.0;
         }
-        else if (targetHeading > 135 && currentAngle() < -135) {
+        else if (targetHeading > 175 && currentAngle() < -175) {
             current = currentAngle() + 360.0;
-        }
-
-        if (target > 180) {
-            target-=360;
-        }
-        else if (target < -180) {
-            target += 360;
-        }
+        }*/
+        double error1 = current - target;
+        double error2;
+        double error;
+        if(current < 0)
+            error2 = (current+360)-(target);
+        else
+            error2 = (current-360)-(target);
+        if(Math.abs(error1) <= Math.abs(error2))
+            error = error1;
+        else
+            error = error2;
 
         //PD correction for both regular and spline motion
         if (movementType.contains("straight") || movementType.contains("spline")) {
-            leftFront.setPower(Range.clip(power + ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
-            rightFront.setPower(Range.clip(power - ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
-            leftBack.setPower(Range.clip(power + ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
-            rightBack.setPower(Range.clip(power - ForwardHeadingPid.getCorrection(current - target, runtime), -1.0, 1.0));
+            leftFront.setPower(Range.clip(power + ForwardHeadingPid.getCorrection(error, runtime), -1.0, 1.0));
+            rightFront.setPower(Range.clip(power - ForwardHeadingPid.getCorrection(error, runtime), -1.0, 1.0));
+            leftBack.setPower(Range.clip(power + ForwardHeadingPid.getCorrection(error, runtime), -1.0, 1.0));
+            rightBack.setPower(Range.clip(power - ForwardHeadingPid.getCorrection(error, runtime), -1.0, 1.0));
         }
 
         //pd correction for strafe motion. Right and left are opposites
         else if (movementType.contains("strafe")) {
+            if (Math.abs(error) > 180) {
+                error = 360 - error;
+            }
             if (movementType.contains("left")) {
-                leftFront.setPower(-power);
-                rightFront.setPower(Range.clip(power/* - strafePID.getCorrection(current - target, runtime)*/, -1.0, 1.0));
-                leftBack.setPower(Range.clip(power/* + strafePID.getCorrection(current - target, runtime)*/, -1.0, 1.0));
-                rightBack.setPower(Range.clip(-power + strafePID.getCorrection(current - target, runtime), -1.0, 1.0));
+                leftFront.setPower(Range.clip(-power + strafePID.getCorrection(error, runtime), -1.0, 1.0));
+                rightFront.setPower(Range.clip(power - strafePID.getCorrection(error, runtime), -1.0, 1.0));
+                leftBack.setPower(Range.clip(power + strafePID.getCorrection(error, runtime), -1.0, 1.0));
+                rightBack.setPower(Range.clip(-power - strafePID.getCorrection(error, runtime), -1.0, 1.0));
             }
             else if (movementType.contains("right")) {
-                leftFront.setPower(Range.clip(power/* + strafePID.getCorrection(current - target, runtime)*/, -1.0, 1.0));
-                rightFront.setPower(Range.clip(-power - strafePID.getCorrection(current - target, runtime), -1.0, 1.0));
-                leftBack.setPower(Range.clip(-power /*- strafePID.getCorrection(current - target, runtime)*/, -1.0, 1.0));
-                rightBack.setPower(Range.clip(power - strafePID.getCorrection(current - target, runtime), -1.0, 1.0));
+                leftFront.setPower(Range.clip(power + strafePID.getCorrection(error, runtime), -1.0, 1.0));
+                rightFront.setPower(Range.clip(-power - strafePID.getCorrection(error, runtime), -1.0, 1.0));
+                leftBack.setPower(Range.clip(-power + strafePID.getCorrection(error, runtime), -1.0, 1.0));
+                rightBack.setPower(Range.clip(power - strafePID.getCorrection(error, runtime), -1.0, 1.0));
             }
         }
 
         telemetry.addData("angle", current);
         telemetry.addData("target", target);
         telemetry.addData("error", target-current);
-        telemetry.addData("power BR", rightBack.getPower());
+        /*telemetry.addData("power BR", rightBack.getPower());
         telemetry.addData("power BL", leftBack.getPower());
         telemetry.addData("power FR", rightFront.getPower());
         telemetry.addData("power FL", leftFront.getPower());
-        telemetry.update();
+        telemetry.update();*/
     }
 
     public void trackPosition() throws InterruptedException {
@@ -438,10 +458,10 @@ public abstract class Auto extends LinearOpMode {
         double pause = runtime.time();
         //pause robot for "pause" seconds
         while (runtime.time() - pause < time) {
-            telemetry.addData("XPos", xPos);
-            telemetry.addData("YPos", yPos);
-            telemetry.update();
             heartbeat();
+            telemetry.addData("backlatcher servo pos", backPlatformLatcher.getPosition());
+            telemetry.addData("frontlatcher servo pos", frontPlatformLatcher.getPosition());
+            telemetry.update();
         }
     }
 
@@ -460,7 +480,44 @@ public abstract class Auto extends LinearOpMode {
         frontPlatformLatcher.setPosition(.7);
     }
 
-    private void heartbeat() throws InterruptedException{
+    public void releasePlatform() {
+        backPlatformLatcher.setPosition(0);
+        frontPlatformLatcher.setPosition(0);
+    }
+
+    public void movePlatform(double power, ALLIANCE_COLOR color) throws InterruptedException {
+        double current = runtime.time();
+
+        if (color.equals(ALLIANCE_COLOR.BLUE)) {
+            while (runtime.time() - current < 6) {
+                heartbeat();
+                for (DcMotorEx motor : motors) {
+                    motor.setPower(power);
+                }
+            }
+        }
+
+        else {
+            while (runtime.time() - current < 2) {
+                heartbeat();
+                for (DcMotorEx motor : motors) {
+                    motor.setPower(power+.2);
+                }
+            }
+
+            current = runtime.time();
+
+            while (runtime.time() - current < 3) {
+                heartbeat();
+                for (DcMotorEx motor : motors) {
+                    motor.setPower(power);
+                }
+            }
+        }
+        halt();
+    }
+
+    public void heartbeat() throws InterruptedException{
         //if opMode is stopped, will throw and catch an InterruptedException rather than resulting in red text and program crash on phone
         if(!opModeIsActive()) {
             throw new InterruptedException();

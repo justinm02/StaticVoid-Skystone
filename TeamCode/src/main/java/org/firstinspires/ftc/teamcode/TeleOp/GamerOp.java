@@ -23,8 +23,9 @@ public class GamerOp extends OpMode {
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, slide;
     private Servo frontPlatformLatcher, backPlatformLatcher;
     private Servo leftClaw, rightClaw;
+    private Servo capStick;
     private boolean precision, direction;
-        private boolean canTogglePrecision, canToggleDirection, strafeMode;
+    private boolean canTogglePrecision, canToggleDirection, strafeMode;
     private boolean useOneGamepad;
     private int baseSlidePosition;
 
@@ -79,6 +80,7 @@ public class GamerOp extends OpMode {
         backPlatformLatcher = hardwareMap.servo.get("backLatcher");
         rightClaw = hardwareMap.servo.get("rightClaw");
         leftClaw = hardwareMap.servo.get("leftClaw");
+        capStick = hardwareMap.servo.get("capStick");
     }
 
     @Override
@@ -102,6 +104,7 @@ public class GamerOp extends OpMode {
         moveSlide();
         gripBlock();
         gripPlatform();
+        dropCap();
         useOneGamepad();
     }
 
@@ -139,10 +142,10 @@ public class GamerOp extends OpMode {
         final double rightRearPower = Range.clip(x * Math.cos(powerAngle) + rightX, -1.0, 1.0);
 
         //If (?) precision, set up to .2 of power. Else (:) 1.0 of power
-        leftFront.setPower(leftFrontPower * (precision ? 0.3 : 1.0));
-        leftBack.setPower(leftRearPower * (precision ? 0.3 : 1.0));
-        rightFront.setPower(rightFrontPower * (precision ? 0.3 : 1.0));
-        rightBack.setPower(rightRearPower * (precision ? 0.3 : 1.0));
+        leftFront.setPower(leftFrontPower * (precision ? 0.4 : 1.0));
+        leftBack.setPower(leftRearPower * (precision ? 0.4 : 1.0));
+        rightFront.setPower(rightFrontPower * (precision ? 0.4 : 1.0));
+        rightBack.setPower(rightRearPower * (precision ? 0.4 : 1.0));
 
         telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftRearPower, rightRearPower);
@@ -176,10 +179,10 @@ public class GamerOp extends OpMode {
             leftClaw.setPosition(0.42);
             rightClaw.setPosition(0.58);
         }
-        else if (gamepad2.dpad_left) {
+        else if (gamepad2.left_bumper) {
             rightClaw.setPosition(.35);
         }
-        else if (gamepad2.dpad_right) {
+        else if (gamepad2.right_bumper) {
             leftClaw.setPosition(.6);
         }
 
@@ -198,6 +201,13 @@ public class GamerOp extends OpMode {
         }
     }
 
+    public void dropCap() {
+        if(gamepad1.dpad_down || (useOneGamepad && gamepad1.right_trigger != 0))
+            capStick.setPosition(.7);
+        else if (gamepad1.dpad_up || (useOneGamepad && gamepad1.left_trigger != 0))
+            capStick.setPosition(.2);
+    }
+
     public void useOneGamepad() {
         if ((gamepad1.right_bumper && gamepad1.left_bumper && gamepad1.left_trigger == 1 && gamepad1.right_trigger == 1) || (gamepad2.right_bumper && gamepad2.left_bumper && gamepad2.left_trigger == 1 && gamepad2.right_trigger == 1)) {
             useOneGamepad = !useOneGamepad;
@@ -209,4 +219,3 @@ public class GamerOp extends OpMode {
 
     }
 }
-

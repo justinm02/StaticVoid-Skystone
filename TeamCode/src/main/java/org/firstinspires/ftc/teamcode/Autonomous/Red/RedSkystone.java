@@ -5,7 +5,7 @@ import org.firstinspires.ftc.teamcode.Autonomous.Auto;
 
 
 @Autonomous(name = "RedSkystone", group = "Autonomous")
-public class Skystone extends Auto {
+public class RedSkystone extends Auto {
 
     private double xSkystone[], ySkystone[];
     private double xCrossBridge[], yCrossBridge[];
@@ -45,21 +45,21 @@ public class Skystone extends Auto {
         SKYSTONE_POSITION position = determineSkystonePlacement(color);
 
         if (position.equals(SKYSTONE_POSITION.RIGHT)) {
-            xSkystone = new double[]{0, 12, 12};
+            xSkystone = new double[]{0, 14, 14};
             ySkystone = new double[]{0, 0, -8};
 
-            xCrossBridge = new double[]{0, 10, 1, 0};
+            xCrossBridge = new double[]{0, 10, 10, 10};
             yCrossBridge = new double[]{0, -15, -47, -65};
 
             xSkystone2 = new double[]{0, -44, -44};
             ySkystone2 = new double[]{0, 0, -12};
 
         } else if (position.equals(SKYSTONE_POSITION.MIDDLE)) {
-            xSkystone = new double[]{0, 21.5, 21.5};
+            xSkystone = new double[]{0, 24, 24};
             ySkystone = new double[]{0, 0, -6};
 
-            xCrossBridge = new double[]{0, 10, 3, -3};
-            yCrossBridge = new double[]{0, -15, -47, -70};
+            xCrossBridge = new double[]{0, 10, 10, 10};
+            yCrossBridge = new double[]{0, -15, -47, -73};
 
             xSkystone2 = new double[]{0, -56, -56};
             ySkystone2 = new double[]{0, 0, -12};
@@ -67,10 +67,10 @@ public class Skystone extends Auto {
             strafe(.3, 0, "strafeleft", 3);
             move(0, -.35, 3, "straight");
 
-            xSkystone = new double[]{0, 9, 9};
+            xSkystone = new double[]{0, 10, 10};
             ySkystone = new double[]{0, 0, -8};
 
-            xCrossBridge = new double[]{0, 10, 3, 1};
+            xCrossBridge = new double[]{0, 10, 10, 10};
             yCrossBridge = new double[]{0, -15, -47, -55};
 
             xSkystone2 = new double[]{0, -56, -56};
@@ -82,60 +82,54 @@ public class Skystone extends Auto {
     public void getFirstSkystone() throws InterruptedException {
         splineMove(xSkystone, ySkystone, .3, 0); //backwards spline from cube to bridge, ending in same orientation
 
-        move(-90, .4, 16, "straight");
+        move(-90, .4, 22, "straight");
 
         gripBlock();
         pause(.5);
     }
 
     public void deliverFirstSkystone() throws InterruptedException {
-        move(-90, -.4, 38, "straight");
+        move(-90, -.4, 42, "straight");
 
         splineMove(xCrossBridge, yCrossBridge, .8, -Math.PI / 2);
+        //strafe(.25, 179, "straferight", 2);
         adjustClaw();
     }
 
     public void getAndDeliverSecondSkystone(SKYSTONE_POSITION position) throws InterruptedException {
         if (position.equals(SKYSTONE_POSITION.MIDDLE)) {
-            move(-180, -.8, 40, "straight");
+            move(179, -.8, 34, "straight");
             pause(.5);
-            moveByTime(2, -180, -.3);
+            moveByTime(2.75, 179, -.3);
 
-            move(-180, .4, 6, "straight");
+            move(179, .2, 9, "straight");
 
-            strafe(.5, -180, "strafeleft", 20);
+            strafe(.25, 179, "strafeleft", 16);
 
-            move(-180, .25, 10,"straight");
+            move(179, .25, 10,"straight");
 
             gripBlock();
 
             pause(.5);
 
-            strafe(.5, -180, "straferight", 16);
+            strafe(.5, 179, "straferight", 20);
 
-            move(-180, .8, 50, "straight");
+            move(179, .7, 63, "straight");
         }
 
         else if (position.equals(SKYSTONE_POSITION.LEFT)) {
-            move(-180, -.8, 44, "straight");
-            pause(.5);
-            moveByTime(1, -180, -.3);
-
-            move(-180, .5, 6, "straight");
-
+            move(179, -.8, 54, "straight");
             pause(.5);
 
             //turn(0, .5, "left");
 
-            while (Math.abs(currentAngle()) > 25) {
-                turn("cw", .7);
+            while (Math.abs(currentAngle()) > 35) {
+                turn("cw", .85);
             }
 
             halt();
 
-            pause(.25);
-
-            strafe(.5, 0, "straferight", 22);
+            strafe(.25, 0, "straferight", 18);
 
             moveByTime(.75, 0, .45);
 
@@ -145,41 +139,41 @@ public class Skystone extends Auto {
 
             move(0, -.3, 3, "straight");
 
-            strafe(.5, 0, "strafeleft", 20);
-
-            move(0, -.9, 53, "straight");
-
+            strafe(.5, 0, "strafeleft", 23);
 
             while (Math.abs(currentAngle()) < 130) {
-                turn("cw", .8);
+                turn("cw", .85);
             }
+
+            move(179, .9, 70, "straight");
         }
 
         else {
-            move(-180, -.8, 40, "straight");
+            move(180, -.8, 46, "straight");
             pause(.5);
-            moveByTime(2, -180, -.3);
+            moveByTime(2, 180, -.3);
 
             pause(.25);
-            move(-180, .4, 14,"straight");
+            move(180, .4, 15,"straight");
 
-            strafe(.5, -180, "strafeleft", 18);
+            strafe(.25, 180, "strafeleft", 18);
 
-            move(-180, .4, 11,"straight");
+            move(180, .4, 7,"straight");
 
             gripBlock();
 
             pause(1);
 
-            strafe(.5, -180, "straferight", 16);
+            strafe(.5, 180, "straferight", 24);
 
-            move(-180, .8, 35, "straight");
+            move(180, .7, 45, "straight");
         }
+        pause(.5);
     }
 
     public void parkBot() throws InterruptedException {
         adjustClaw();
 
-        move(-180, -.7, 7, "straight");
+        move(179, -.7, 12, "straight");
     }
 }
