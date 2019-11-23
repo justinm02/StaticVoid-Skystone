@@ -33,8 +33,9 @@ public abstract class Auto extends LinearOpMode {
     private double xPos = 0;
     private double yPos = 0;
     private final double GEAR_RATIO = 1.00000, WHEEL_DIAMETER = 4, WHEEL_TICKS_PER_REV = 560;
+    //C = circumference
     private final double C = WHEEL_TICKS_PER_REV/(Math.PI*WHEEL_DIAMETER*GEAR_RATIO), STRAFE_COEFFICIENT = 1.20;
-    private final int parallelDeadWheelTicks = 1320; //tested and validated ticks per revolution of parallel deadwheel; old: 1440
+    private final int parallelDeadWheelTicks = 4096; //tested and validated ticks per revolution of parallel deadwheel; old: 1440
     private final int perpendicularDeadWheelTicks = 720; //tested and validated ticks per revolution of parallel deadwheel; old: 1440
     private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05; //circumference of parallel deadwheel
     private final double PARALLEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/parallelDeadWheelTicks; //conversion used to convert inches to ticks (what encoderTracker.getCurrentPosition() reads)

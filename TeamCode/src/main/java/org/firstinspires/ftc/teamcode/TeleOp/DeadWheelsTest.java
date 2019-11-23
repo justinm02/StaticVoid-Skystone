@@ -3,34 +3,38 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
+
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-public class GamerOp extends OpMode {
+public class DeadWheelsTest extends OpMode {
+    private DcMotorEx leftFront, leftBack, rightFront, rightBack, parallelEncoderTracker;
+    private DcMotorEx[] motors;
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotorEx leftFront, leftBack, rightFront, rightBack, slide;
-    //private Servo frontPlatformLatcher, backPlatformLatcher;
-    private Servo leftClaw, rightClaw;
-    private Servo capStick;
     private boolean precision, direction;
     private boolean canTogglePrecision, canToggleDirection, strafeMode;
-    private boolean useOneGamepad;
+    private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05;
+    private final double PARALLEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/4096;
+    private double startingPosition;
 
     @Override
     public void init() {
         //after driver hits init
         setUpDriveTrain();
-        setUpSlide();
-        setUpServos();
+
+        parallelEncoderTracker = hardwareMap.get(DcMotorEx.class, "parallelEncoderTracker");
+        parallelEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        parallelEncoderTracker.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        startingPosition = parallelEncoderTracker.getCurrentPosition();
 
         precision = false;
         direction = false;
         strafeMode = false;
-        useOneGamepad = false;
 
         telemetry.addData("Status", "Initialized");
     }
+
 
     public void setUpDriveTrain() {
         leftFront = (DcMotorEx) hardwareMap.dcMotor.get("leftFront");
@@ -52,23 +56,6 @@ public class GamerOp extends OpMode {
         rightBack.setDirection(DcMotor.Direction.REVERSE);
     }
 
-    public void setUpSlide() {
-        slide = (DcMotorEx) hardwareMap.dcMotor.get("slide");
-        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        //slide.setDirection(DcMotor.Direction.REVERSE);
-
-        slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    }
-
-    public void setUpServos() {
-        //frontPlatformLatcher = hardwareMap.servo.get("frontLatcher");
-        //backPlatformLatcher = hardwareMap.servo.get("backLatcher");
-        rightClaw = hardwareMap.servo.get("rightClaw");
-        leftClaw = hardwareMap.servo.get("leftClaw");
-        capStick = hardwareMap.servo.get("capStick");
-    }
-
     @Override
     //what runs in between robot being initialized and before it plays
     public void init_loop() {
@@ -81,17 +68,15 @@ public class GamerOp extends OpMode {
         runtime.reset();
     }
 
-
     @Override
     public void loop() {
+        double ticks = parallelEncoderTracker.getCurrentPosition() - startingPosition;
+        telemetry.addData("ticks", parallelEncoderTracker.getCurrentPosition());
+        telemetry.addData("inches", parallelEncoderTracker.getCurrentPosition()*PARALLEL_INCHES_OVER_TICKS);
+        telemetry.addData("converted ticks", parallelEncoderTracker.getCurrentPosition()*ticks);
         telemetry.update();
 
         driveBot();
-        moveSlide();
-        gripBlock();
-        gripPlatform();
-        dropCap();
-        useOneGamepad();
     }
 
     public void driveBot() {
@@ -127,7 +112,7 @@ public class GamerOp extends OpMode {
         final double rightFrontPower = Range.clip(x * Math.sin(powerAngle) + rightX, -1.0, 1.0);
         final double rightRearPower = Range.clip(x * Math.cos(powerAngle) + rightX, -1.0, 1.0);
 
-        //If (?) precision, set up to .2 of power. Else (:) 1.0 of power
+        //If (?) precision, set up to .4 of power. Else (:) 1.0 of power
         leftFront.setPower(leftFrontPower * (precision ? 0.4 : 1.0));
         leftBack.setPower(leftRearPower * (precision ? 0.4 : 1.0));
         rightFront.setPower(rightFrontPower * (precision ? 0.4 : 1.0));
@@ -135,73 +120,5 @@ public class GamerOp extends OpMode {
 
         telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftRearPower, rightRearPower);
-    }
-
-    public void moveSlide() {
-        if (gamepad2.dpad_up || (useOneGamepad && gamepad1.dpad_up)) {
-            slide.setPower(1);
-        }
-        else if (gamepad2.dpad_down || (useOneGamepad && gamepad1.dpad_down)) {
-            slide.setPower(-1);
-        }
-        else
-            slide.setPower(0);
-
-        telemetry.addData("slide power", slide.getPower());
-        telemetry.addData("slide position", slide.getCurrentPosition());
-        telemetry.update();
-    }
-
-    public void gripBlock() {
-        if (gamepad2.a  || (useOneGamepad && gamepad1.a)) {
-            leftClaw.setPosition(0.1);
-            rightClaw.setPosition(0.9);
-        }
-        else if (gamepad2.b || (useOneGamepad && gamepad1.b)) {
-            leftClaw.setPosition(.6);
-            rightClaw.setPosition(.35);
-        }
-        else if (gamepad2.x || (useOneGamepad && gamepad1.x)) {
-            leftClaw.setPosition(0.42);
-            rightClaw.setPosition(0.58);
-        }
-        else if (gamepad2.left_bumper) {
-            rightClaw.setPosition(.35);
-        }
-        else if (gamepad2.right_bumper) {
-            leftClaw.setPosition(.6);
-        }
-
-        telemetry.addData("claw left pos", leftClaw.getPosition());
-        telemetry.addData("claw right pos", rightClaw.getPosition());
-    }
-
-    public void gripPlatform() {
-        if (gamepad1.right_bumper) {
-            //backPlatformLatcher.setPosition(-1);
-            //frontPlatformLatcher.setPosition(-1);
-        }
-        else if (gamepad1.left_bumper) {
-            //backPlatformLatcher.setPosition(.7);
-            //frontPlatformLatcher.setPosition(.7);
-        }
-    }
-
-    public void dropCap() {
-        if(gamepad1.dpad_down || (useOneGamepad && gamepad1.right_trigger != 0))
-            capStick.setPosition(1);
-        else if (gamepad1.dpad_up || (useOneGamepad && gamepad1.left_trigger != 0))
-            capStick.setPosition(0);
-    }
-
-    public void useOneGamepad() {
-        if ((gamepad1.right_bumper && gamepad1.left_bumper && gamepad1.left_trigger == 1 && gamepad1.right_trigger == 1) || (gamepad2.right_bumper && gamepad2.left_bumper && gamepad2.left_trigger == 1 && gamepad2.right_trigger == 1)) {
-            useOneGamepad = !useOneGamepad;
-        }
-    }
-
-    @Override
-    public void stop() {
-
     }
 }
