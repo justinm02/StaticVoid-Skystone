@@ -35,11 +35,9 @@ public abstract class Auto extends LinearOpMode {
     private final double GEAR_RATIO = 1.00000, WHEEL_DIAMETER = 4, WHEEL_TICKS_PER_REV = 560;
     //C = circumference
     private final double C = WHEEL_TICKS_PER_REV/(Math.PI*WHEEL_DIAMETER*GEAR_RATIO), STRAFE_COEFFICIENT = 1.20;
-    private final int parallelDeadWheelTicks = 4096; //tested and validated ticks per revolution of parallel deadwheel; old: 1440
-    private final int perpendicularDeadWheelTicks = 720; //tested and validated ticks per revolution of parallel deadwheel; old: 1440
+    private final int deadWheelTicks = 4096;
     private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05; //circumference of parallel deadwheel
-    private final double PARALLEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/parallelDeadWheelTicks; //conversion used to convert inches to ticks (what encoderTracker.getCurrentPosition() reads)
-    private final double PERPENDICULAR_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/perpendicularDeadWheelTicks; //conversion used to convert inches to tick
+    private final double DEADWHEEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/deadWheelTicks; //conversion used to convert inches to ticks (what encoderTracker.getCurrentPosition() reads)
 
     private Vuforia vuforia = new Vuforia();
     private int cameraMonitorViewId;
@@ -92,8 +90,6 @@ public abstract class Auto extends LinearOpMode {
         //parallelEncoderTracker.setDirection(DcMotor.Direction.REVERSE);
         //perpendicularEncoderTracker.setDirection(DcMotor.Direction.REVERSE);
 
-
-
         parallelEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         parallelEncoderTracker.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         perpendicularEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -127,18 +123,17 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public SKYSTONE_POSITION determineSkystonePlacement(ALLIANCE_COLOR color) throws InterruptedException {
-        resetMotors();
-
         double baseSlidePosition = slide.getCurrentPosition();
         double yPosition = 0;
-        double inches = 16;
+        int inches = 16;
 
-        double startingPosition = leftFront.getCurrentPosition();
+        int ticks = (int)(inches/DEADWHEEL_INCHES_OVER_TICKS);
+        double startingPosition = perpendicularEncoderTracker.getCurrentPosition();
 
         vuforia.targetsSkyStone.activate();
         pause(0.5);
 
-        while (!vuforia.targetVisible && motorsBusy((int)(inches*C*STRAFE_COEFFICIENT), startingPosition)) {
+        while (!vuforia.targetVisible && Math.abs(perpendicularEncoderTracker.getCurrentPosition() - startingPosition) < ticks) {
             heartbeat();
             correction(.125, 0, "straferight", false);
             if (Math.abs(baseSlidePosition - slide.getCurrentPosition()) < 300) {
@@ -166,7 +161,7 @@ public abstract class Auto extends LinearOpMode {
         vuforia.targetsSkyStone.deactivate();
 
         if (color.equals(ALLIANCE_COLOR.RED)) {
-            return determineRedPosition(motorsBusy((int)(inches*C*STRAFE_COEFFICIENT), startingPosition), yPosition);
+            return determineRedPosition(Math.abs(perpendicularEncoderTracker.getCurrentPosition() - startingPosition) < ticks, yPosition);
         }
         return determineBluePosition(yPosition);
     }
@@ -189,30 +184,24 @@ public abstract class Auto extends LinearOpMode {
         return SKYSTONE_POSITION.LEFT;
     }
 
-    public void move(double targetHeading, double power, int distance, String direction) throws InterruptedException {
+    public void move(double targetHeading, double power, int inches, String direction) throws InterruptedException {
         boolean inverted = false;
-
         if (power < 0)
             inverted = true;
 
-        int target = (int)(distance*C); //how many ticks robot will travel
-
-        double current = runtime.time();
+        int ticks = (int)(inches/DEADWHEEL_INCHES_OVER_TICKS); //how many ticks robot will travel
+        double startingPosition = parallelEncoderTracker.getCurrentPosition();
 
         resetMotors();
-
-        double startingPosition = leftFront.getCurrentPosition();
-
-        while (motorsBusy(target, startingPosition)) {
+        while (Math.abs(parallelEncoderTracker.getCurrentPosition() - startingPosition) < ticks && motorsBusy((int)(inches*C), leftFront.getCurrentPosition())) {
             correction(power, targetHeading, direction, inverted);
-            //telemetry.addData("diff", Math.abs(parallelEncoderTracker.getCurrentPosition()-startingPosition)*PARALLEL_INCHES_OVER_TICKS);
+            //telemetry.addData("inches traveled", Math.abs(parallelEncoderTracker.getCurrentPosition()-startingPosition)*PARALLEL_INCHES_OVER_TICKS);
             telemetry.addData("lf", leftFront.getCurrentPosition());
             telemetry.addData("lb", leftBack.getCurrentPosition());
             telemetry.addData("rf", rightFront.getCurrentPosition());
             telemetry.addData("rb", rightBack.getCurrentPosition());
             telemetry.addData("parallel", parallelEncoderTracker.getCurrentPosition());
             telemetry.update();
-            //trackPosition();
             heartbeat();
         }
 
@@ -238,13 +227,10 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void strafe(double power, int targetHeading, String direction, double inches) throws InterruptedException {
-        int ticks = (int)(inches*C*STRAFE_COEFFICIENT);
+        int ticks = (int)(inches/DEADWHEEL_INCHES_OVER_TICKS);
+        double startingPosition = perpendicularEncoderTracker.getCurrentPosition();
 
-        resetMotors();
-        double startingPosition = leftFront.getCurrentPosition();
-        //double startingPosition = perpendicularEncoderTracker.getCurrentPosition();
-
-        while (motorsBusy(ticks, startingPosition)) {
+        while (Math.abs(perpendicularEncoderTracker.getCurrentPosition() - startingPosition) < ticks) {
             correction(power, targetHeading, direction, false);
             heartbeat();
             /*telemetry.addData("leftBack ticks", Math.abs(leftBack.getCurrentPosition()));
@@ -298,7 +284,7 @@ public abstract class Auto extends LinearOpMode {
             correction(power, (int)(180/Math.PI*spline.getAngle(t,  offset)), "spline", inverted); //converts lastAngle to radians
             lastAngle = (int)(180/Math.PI*spline.getAngle(t,  offset)); //converts lastAngle to degrees for telemetry
             //distanceTraveled computed by converting encoderTraveled ticks on deadwheel to inches traveled
-            distanceTraveled = PARALLEL_INCHES_OVER_TICKS*(parallelEncoderTracker.getCurrentPosition()-startingPosition);
+            distanceTraveled = DEADWHEEL_INCHES_OVER_TICKS*(parallelEncoderTracker.getCurrentPosition()-startingPosition);
             //t measures progress along curve. Very important for computing splineAngle.
             t = Math.abs(distanceTraveled/arclength);
             /*telemetry.addData("Distance ", distanceTraveled);
@@ -427,12 +413,12 @@ public abstract class Auto extends LinearOpMode {
         telemetry.update();*/
     }
 
-    public void trackPosition() throws InterruptedException {
+    /*public void trackPosition() throws InterruptedException {
         pause(.05);
         //trig calculated before changeInParallelPos determined because the calculation takes too long and otherwise skews distance
         double cosAngle = Math.cos(currentAngle()*Math.PI/180);
         double sinAngle = Math.sin(currentAngle()*Math.PI/180);
-        double changeInParallelPos = (parallelEncoderTracker.getCurrentPosition() - initialParallelEncoderPosition)*PARALLEL_INCHES_OVER_TICKS;
+        double changeInParallelPos = (parallelEncoderTracker.getCurrentPosition() - initialParallelEncoderPosition)*DEADWHEEL_INCHES_OVER_TICKS;
         //int changeInPerpendicularPos = perpendicularEncoderTracker.getCurrentPosition() - initialPerpendicularEncoderPosition;
 
         //sign of perpendicularPos trig may be subject to change in future when we test
@@ -447,7 +433,7 @@ public abstract class Auto extends LinearOpMode {
         telemetry.addData("x pos", xPos);
         telemetry.addData("y pos", yPos);
         telemetry.update();
-    }
+    }*/
 
     public void halt() {
         for (DcMotorEx motor : motors) {
