@@ -135,6 +135,9 @@ public class GamerOp extends OpMode {
 
         telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftRearPower, rightRearPower);
+
+        telemetry.addData("Front Motors Power", "Left Front (%.2f), Right Front (%.2f)", leftFront.getPower(), rightFront.getPower());
+        telemetry.addData("Rear Motors Power", "Left Rear (%.2f), Right Rear (%.2f)", leftBack.getPower(), rightBack.getPower());
     }
 
     public void moveSlide() {

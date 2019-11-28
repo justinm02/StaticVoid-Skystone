@@ -7,12 +7,12 @@ public class AutoOp extends Auto {
 
     public void runOpMode() {
         initialize();
-
         waitForStart();
 
         try {
-            //strafe(.15, 0, "straferight", 200);
-            move(0, 0, 200, "straight");
+            //PIDTurn(90);
+            //strafe(.25, 0, "strafeleft", 48);
+            move(0, -.3, 200, "straight");
         }
         catch (InterruptedException e) { }
     }

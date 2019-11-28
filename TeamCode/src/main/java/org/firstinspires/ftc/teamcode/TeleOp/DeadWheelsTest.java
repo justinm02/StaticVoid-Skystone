@@ -8,14 +8,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 public class DeadWheelsTest extends OpMode {
-    private DcMotorEx leftFront, leftBack, rightFront, rightBack, parallelEncoderTracker;
+    private DcMotorEx leftFront, leftBack, rightFront, rightBack, parallelEncoderTracker, perpendicularEncoderTracker;
     private DcMotorEx[] motors;
     private ElapsedTime runtime = new ElapsedTime();
     private boolean precision, direction;
     private boolean canTogglePrecision, canToggleDirection, strafeMode;
     private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05;
-    private final double PARALLEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/4096;
-    private double startingPosition;
+    private final double DEADWHEEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/4096;
+    private double parallelStartingPosition, perpendicularStartingPosition;
 
     @Override
     public void init() {
@@ -26,7 +26,12 @@ public class DeadWheelsTest extends OpMode {
         parallelEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         parallelEncoderTracker.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        startingPosition = parallelEncoderTracker.getCurrentPosition();
+        perpendicularEncoderTracker = hardwareMap.get(DcMotorEx.class, "perpendicularEncoderTracker");
+        perpendicularEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        perpendicularEncoderTracker.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        parallelStartingPosition = parallelEncoderTracker.getCurrentPosition();
+        perpendicularStartingPosition = perpendicularEncoderTracker.getCurrentPosition();
 
         precision = false;
         direction = false;
@@ -70,10 +75,15 @@ public class DeadWheelsTest extends OpMode {
 
     @Override
     public void loop() {
-        double ticks = parallelEncoderTracker.getCurrentPosition() - startingPosition;
-        telemetry.addData("ticks", parallelEncoderTracker.getCurrentPosition());
-        telemetry.addData("inches", parallelEncoderTracker.getCurrentPosition()*PARALLEL_INCHES_OVER_TICKS);
-        telemetry.addData("converted ticks", parallelEncoderTracker.getCurrentPosition()*ticks);
+        double parallelTicks = parallelEncoderTracker.getCurrentPosition() - parallelStartingPosition;
+        double perpendicularTicks = perpendicularEncoderTracker.getCurrentPosition() - perpendicularStartingPosition;
+
+        telemetry.addData("parallel ticks", parallelEncoderTracker.getCurrentPosition());
+        telemetry.addData("parallel inches", parallelEncoderTracker.getCurrentPosition()*DEADWHEEL_INCHES_OVER_TICKS);
+        telemetry.addData("parallel converted ticks", parallelTicks*DEADWHEEL_INCHES_OVER_TICKS);
+        telemetry.addData("parallel ticks", perpendicularEncoderTracker.getCurrentPosition());
+        telemetry.addData("parallel inches", perpendicularEncoderTracker.getCurrentPosition()*DEADWHEEL_INCHES_OVER_TICKS);
+        telemetry.addData("parallel converted ticks", perpendicularTicks*DEADWHEEL_INCHES_OVER_TICKS);
         telemetry.update();
 
         driveBot();
@@ -120,5 +130,9 @@ public class DeadWheelsTest extends OpMode {
 
         telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftRearPower, rightRearPower);
+        telemetry.addData("Front Motors Power", "Left Front (%.2f), Right Front (%.2f)", leftFront.getPower(), rightFront.getPower());
+        telemetry.addData("Rear Motors Power", "Left Rear (%.2f), Right Rear (%.2f)", leftBack.getPower(), rightBack.getPower());
+
+        telemetry.update();
     }
 }

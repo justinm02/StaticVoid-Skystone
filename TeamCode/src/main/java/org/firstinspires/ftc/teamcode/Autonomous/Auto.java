@@ -27,13 +27,13 @@ public abstract class Auto extends LinearOpMode {
     private BNO055IMU imu;
     private PID ForwardHeadingPid = new PID(0.0175, 0, 0.010);
     private PID BackwardsHeadingPID = new PID(0, 0, 0);
-    private PID strafePID = new PID(0.01, 0, 0); //still need to be determined and tuned
+    private PID strafePID = new PID(0.03, 0, 0); //still need to be determined and tuned
     public int initialParallelEncoderPosition;
     public int initialPerpendicularEncoderPosition;
     private double xPos = 0;
     private double yPos = 0;
     private final double GEAR_RATIO = 1.00000, WHEEL_DIAMETER = 4, WHEEL_TICKS_PER_REV = 560;
-    //C = circumference
+    // C = circumference
     private final double C = WHEEL_TICKS_PER_REV/(Math.PI*WHEEL_DIAMETER*GEAR_RATIO), STRAFE_COEFFICIENT = 1.20;
     private final int deadWheelTicks = 4096;
     private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05; //circumference of parallel deadwheel
@@ -123,17 +123,17 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public SKYSTONE_POSITION determineSkystonePlacement(ALLIANCE_COLOR color) throws InterruptedException {
-        double baseSlidePosition = slide.getCurrentPosition();
+        resetMotors();
+
+        double baseSlidePosition = leftFront.getCurrentPosition();
         double yPosition = 0;
         int inches = 16;
-
-        int ticks = (int)(inches/DEADWHEEL_INCHES_OVER_TICKS);
         double startingPosition = perpendicularEncoderTracker.getCurrentPosition();
 
         vuforia.targetsSkyStone.activate();
         pause(0.5);
 
-        while (!vuforia.targetVisible && Math.abs(perpendicularEncoderTracker.getCurrentPosition() - startingPosition) < ticks) {
+        while (!vuforia.targetVisible && motorsBusy((int)(inches*C*STRAFE_COEFFICIENT), startingPosition)) {
             heartbeat();
             correction(.125, 0, "straferight", false);
             if (Math.abs(baseSlidePosition - slide.getCurrentPosition()) < 300) {
@@ -161,7 +161,7 @@ public abstract class Auto extends LinearOpMode {
         vuforia.targetsSkyStone.deactivate();
 
         if (color.equals(ALLIANCE_COLOR.RED)) {
-            return determineRedPosition(Math.abs(perpendicularEncoderTracker.getCurrentPosition() - startingPosition) < ticks, yPosition);
+            return determineRedPosition(motorsBusy((int)(inches*C*STRAFE_COEFFICIENT), startingPosition), yPosition);
         }
         return determineBluePosition(yPosition);
     }
@@ -227,10 +227,12 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void strafe(double power, int targetHeading, String direction, double inches) throws InterruptedException {
-        int ticks = (int)(inches/DEADWHEEL_INCHES_OVER_TICKS);
-        double startingPosition = perpendicularEncoderTracker.getCurrentPosition();
+        resetMotors();
 
-        while (Math.abs(perpendicularEncoderTracker.getCurrentPosition() - startingPosition) < ticks) {
+        int ticks = (int)(inches*C*STRAFE_COEFFICIENT);
+        double startingPosition = leftFront.getCurrentPosition();
+
+        while (motorsBusy(ticks, startingPosition)) {
             correction(power, targetHeading, direction, false);
             heartbeat();
             /*telemetry.addData("leftBack ticks", Math.abs(leftBack.getCurrentPosition()));
@@ -321,6 +323,26 @@ public abstract class Auto extends LinearOpMode {
             else if (targetHeading > 135 && currentAngle() < -135) {
                 current = currentAngle() + 360.0;
             }
+        }
+
+        halt();
+    }
+
+    public void PIDTurn(int targetHeading) throws InterruptedException {
+        while(Math.abs(currentAngle() - targetHeading) > 2) {
+            double error = currentAngle() - targetHeading;
+
+            leftFront.setPower(Range.clip(ForwardHeadingPid.getCorrection(error, runtime), -0.5, 0.5));
+            rightFront.setPower(Range.clip(-ForwardHeadingPid.getCorrection(error, runtime), -0.5, 0.5));
+            leftBack.setPower(Range.clip(ForwardHeadingPid.getCorrection(error, runtime), -0.5, 0.5));
+            rightBack.setPower(Range.clip(-ForwardHeadingPid.getCorrection(error, runtime), -0.5, 0.5));
+
+            telemetry.addData("leftBack power", leftBack.getPower());
+            telemetry.addData("leftFront power", leftFront.getPower());
+            telemetry.addData("rightBack power", rightBack.getPower());
+            telemetry.addData("rightFront power", rightFront.getPower());
+            telemetry.update();
+            heartbeat();
         }
 
         halt();
