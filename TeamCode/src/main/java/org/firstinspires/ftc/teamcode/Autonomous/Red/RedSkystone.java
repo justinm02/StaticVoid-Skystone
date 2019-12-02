@@ -27,73 +27,60 @@ public class RedSkystone extends Auto {
 
             deliverFirstSkystone();
 
-            getAndDeliverSecondSkystone(position);
+            //getAndDeliverSecondSkystone(position);
 
-            parkBot();
+            //parkBot();
         }
         catch(InterruptedException e) { }
     }
 
     public void moveFromWall() throws InterruptedException {
-        strafe(.15, 0, "straferight", 6);
+        strafe(.35, 0, "straferight", 6);
 
         adjustClaw();
-        pause(1.25);
     }
 
     public SKYSTONE_POSITION predetermineMovement() throws InterruptedException {
         SKYSTONE_POSITION position = determineSkystonePlacement(color);
 
         if (position.equals(SKYSTONE_POSITION.RIGHT)) {
-            xSkystone = new double[]{0, 14, 14};
+            xSkystone = new double[]{0, 17, 17};
             ySkystone = new double[]{0, 0, -8};
 
-            xCrossBridge = new double[]{0, 10, 10, 10};
-            yCrossBridge = new double[]{0, -15, -47, -65};
-
-            xSkystone2 = new double[]{0, -44, -44};
-            ySkystone2 = new double[]{0, 0, -12};
+            xCrossBridge = new double[]{0, -14, -14};
+            yCrossBridge = new double[]{0, 0, -70};
 
         } else if (position.equals(SKYSTONE_POSITION.MIDDLE)) {
-            xSkystone = new double[]{0, 24, 24};
+            xSkystone = new double[]{0, 26, 26};
             ySkystone = new double[]{0, 0, -6};
 
-            xCrossBridge = new double[]{0, 10, 10, 10};
-            yCrossBridge = new double[]{0, -15, -47, -73};
-
-            xSkystone2 = new double[]{0, -56, -56};
-            ySkystone2 = new double[]{0, 0, -12};
+            xCrossBridge = new double[]{0, -14, -14};
+            yCrossBridge = new double[]{0, 0, -78};
         } else {
             strafe(.3, 0, "strafeleft", 3);
-            move(0, -.35, 3, "straight");
 
             xSkystone = new double[]{0, 10, 10};
             ySkystone = new double[]{0, 0, -8};
 
-            xCrossBridge = new double[]{0, 10, 10, 10};
-            yCrossBridge = new double[]{0, -15, -47, -55};
-
-            xSkystone2 = new double[]{0, -56, -56};
-            ySkystone2 = new double[]{0, 0, -12};
+            xCrossBridge = new double[]{0, -14, -14};
+            yCrossBridge = new double[]{0, 0, -86};
         }
         return position;
     }
 
     public void getFirstSkystone() throws InterruptedException {
-        splineMove(xSkystone, ySkystone, .3, 0); //backwards spline from cube to bridge, ending in same orientation
+        splineMove(xSkystone, ySkystone, .4, 0); //backwards spline from cube to bridge, ending in same orientation
 
-        move(-90, .4, 22, "straight");
+        move(-90, .55, 22, "straight");
 
         gripBlock();
-        pause(.5);
+        pause(1.25);
     }
 
     public void deliverFirstSkystone() throws InterruptedException {
-        move(-90, -.4, 42, "straight");
+        splineMove(xCrossBridge, yCrossBridge, -.75, -Math.PI / 2);
 
-        splineMove(xCrossBridge, yCrossBridge, .8, -Math.PI / 2);
-        //strafe(.25, 179, "straferight", 2);
-        adjustClaw();
+        PIDTurn(180, 1.0);
     }
 
     public void getAndDeliverSecondSkystone(SKYSTONE_POSITION position) throws InterruptedException {

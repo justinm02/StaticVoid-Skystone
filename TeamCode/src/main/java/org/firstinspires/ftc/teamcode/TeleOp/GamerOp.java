@@ -161,12 +161,12 @@ public class GamerOp extends OpMode {
             rightClaw.setPosition(0.9);
         }
         else if (gamepad2.b || (useOneGamepad && gamepad1.b)) {
-            leftClaw.setPosition(.6);
-            rightClaw.setPosition(.35);
+            leftClaw.setPosition(.8);
+            rightClaw.setPosition(.2);
         }
         else if (gamepad2.x || (useOneGamepad && gamepad1.x)) {
-            leftClaw.setPosition(0.42);
-            rightClaw.setPosition(0.58);
+            leftClaw.setPosition(.6);
+            rightClaw.setPosition(.35);
         }
         else if (gamepad2.left_bumper) {
             rightClaw.setPosition(.35);
