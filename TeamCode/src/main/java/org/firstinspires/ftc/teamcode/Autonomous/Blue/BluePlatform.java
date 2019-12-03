@@ -18,7 +18,7 @@ public class BluePlatform extends Auto {
             gripBlock();
             pause(1.25);
 
-            moveSlideByTicks();
+            //moveSlideByTicks();
 
             move(0, .3, 51, "straight");
 

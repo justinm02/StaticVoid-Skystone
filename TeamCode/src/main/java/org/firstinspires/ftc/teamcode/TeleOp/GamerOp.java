@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.util.Range;
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, slide;
-    //private Servo frontPlatformLatcher, backPlatformLatcher;
+    private Servo frontPlatformLatcher, backPlatformLatcher;
     private Servo leftClaw, rightClaw;
     private Servo capStick;
     private boolean precision, direction;
@@ -62,8 +62,8 @@ public class GamerOp extends OpMode {
     }
 
     public void setUpServos() {
-        //frontPlatformLatcher = hardwareMap.servo.get("frontLatcher");
-        //backPlatformLatcher = hardwareMap.servo.get("backLatcher");
+        frontPlatformLatcher = hardwareMap.servo.get("frontLatcher");
+        backPlatformLatcher = hardwareMap.servo.get("backLatcher");
         rightClaw = hardwareMap.servo.get("rightClaw");
         leftClaw = hardwareMap.servo.get("leftClaw");
         capStick = hardwareMap.servo.get("capStick");
@@ -181,12 +181,12 @@ public class GamerOp extends OpMode {
 
     public void gripPlatform() {
         if (gamepad1.right_bumper) {
-            //backPlatformLatcher.setPosition(-1);
-            //frontPlatformLatcher.setPosition(-1);
+            backPlatformLatcher.setPosition(.67);
+            frontPlatformLatcher.setPosition(.25);
         }
         else if (gamepad1.left_bumper) {
-            //backPlatformLatcher.setPosition(.7);
-            //frontPlatformLatcher.setPosition(.7);
+            backPlatformLatcher.setPosition(0);
+            frontPlatformLatcher.setPosition(.85);
         }
     }
 

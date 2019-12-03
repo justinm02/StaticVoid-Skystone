@@ -34,7 +34,7 @@ public class RedSkystonePlatform extends Auto {
     }
 
     public void moveFromWall() throws InterruptedException {
-        strafe(.5, 0, "straferight", 6);
+        strafe(.25, 0, "straferight", 6);
 
         adjustClaw();
     }
@@ -71,33 +71,56 @@ public class RedSkystonePlatform extends Auto {
     public void getFirstSkystone() throws InterruptedException {
         splineMove(xSkystone, ySkystone, .3, 0); //backwards spline from cube to bridge, ending in same orientation
 
-        move(-90, .3, 19, "straight");
+        move(-90, .3, 17, "straight");
 
         gripBlock();
         pause(1);
+
+        adjustClaw();
+
+        move(-90, .2, 3, "straight");
+        gripBlock();
+        pause(1);
+
+        moveSlideByTicks(50, .5);
     }
 
     public void deliverFirstSkystone() throws InterruptedException {
-        splineMove(xCrossBridge, yCrossBridge, -.4, -Math.PI / 2);
+        splineMove(xCrossBridge, yCrossBridge, -.7, -Math.PI / 2);
 
         PIDTurn(180, 1.0);
     }
 
     public void getPlatform() throws InterruptedException {
-        PIDTurn(90, 1.0);
+        PIDTurn(-90, 1.0);
 
-        move(90, -.5, 21, "straight");
+        moveSlideByTicks(500, .5);
+        move(-90, .5, 17, "straight");
+        adjustClaw();
+        pause(1);
+
+        move(-90, -.5, 4, "straight");
+        moveSlideByTicks(300, -.35);
+        PIDTurn(90, 1.0);
+        move(90, -.5, 4, "straight");
         gripPlatform();
         pause(1);
 
-        splineMove(xPlatform, yPlatform, 0.3, Math.PI/2);
+        move(90, .3, 14, "straight");
 
-        move(0, .3, 4, "straight");
+        PIDTurn(75, .3);
+
+        move(75, .3, 8, "straight");
+
+        while(currentAngle() > 5) {
+            turn("cw", .35);
+        }
+        halt();
 
         releasePlatform();
         pause(.75);
 
-        moveByTime(3, 0, -.3);
+        moveByTime(1, 0, -.3);
     }
 
     public void parkBot() throws InterruptedException {

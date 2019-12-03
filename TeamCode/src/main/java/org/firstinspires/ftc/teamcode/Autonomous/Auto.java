@@ -214,11 +214,11 @@ public abstract class Auto extends LinearOpMode {
         halt();
     }
 
-    public void moveSlideByTicks() {
+    public void moveSlideByTicks(int ticks, double power) {
         double basePosition = slide.getCurrentPosition();
 
-        while (Math.abs(basePosition - slide.getCurrentPosition()) < 300) {
-            slide.setPower(-.2);
+        while (Math.abs(basePosition - slide.getCurrentPosition()) < ticks) {
+            slide.setPower(power);
         }
         slide.setPower(0);
     }
@@ -480,8 +480,8 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void gripPlatform() {
-        backPlatformLatcher.setPosition(.85);
-        frontPlatformLatcher.setPosition(0);
+        backPlatformLatcher.setPosition(.67);
+        frontPlatformLatcher.setPosition(.25);
     }
 
     public void releasePlatform() {

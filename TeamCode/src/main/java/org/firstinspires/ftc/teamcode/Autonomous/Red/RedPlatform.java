@@ -50,7 +50,7 @@ public class RedPlatform extends Auto {
             gripBlock();
             pause(1.25);
 
-            moveSlideByTicks();
+            //moveSlideByTicks();
 
             strafe(.3, (int)(currentAngle()), "straferight", 32);
 

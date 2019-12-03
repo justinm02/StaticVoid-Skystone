@@ -9,11 +9,12 @@ public class AutoOp extends Auto {
         initialize();
         waitForStart();
 
-        try {
+        //try {
             //PIDTurn(150);
             //strafe(.25, 0, "strafeleft", 48);
-            move(0, -.3, 200, "straight");
-        }
-        catch (InterruptedException e) { }
+            //move(0, -.3, 200, "straight");
+            moveSlideByTicks(400, .5);
+        //}
+        //catch (InterruptedException e) { }
     }
 }
