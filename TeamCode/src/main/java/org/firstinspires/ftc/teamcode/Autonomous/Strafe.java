@@ -9,11 +9,11 @@ public class Strafe extends Auto {
         initialize();
         waitForStart();
 
-        try {
-            //PIDTurn(90);
-            strafe(.25, 0, "strafeleft", 48);
-            //move(0, -.3, 200, "straight");
-        }
-        catch (InterruptedException e) { }
+//        try {
+//            //PIDTurn(90);
+//            strafe(.25, 0, "strafeleft", 48);
+//            move(0, 120, , "straight");
+//        }
+//        catch (InterruptedException e) { }
     }
 }

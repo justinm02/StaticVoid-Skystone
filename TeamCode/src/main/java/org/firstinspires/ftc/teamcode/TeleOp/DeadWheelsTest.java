@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
@@ -10,7 +11,8 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.Localization.PositionTracker;
 
 public class DeadWheelsTest extends OpMode {
-    private DcMotorEx leftFront, leftBack, rightFront, rightBack, parallelLeftEncoderTracker, parallelRightEncoderTracker, perpendicularEncoderTracker;
+    private DcMotorEx leftFront, leftBack, rightFront, rightBack, parallelRightEncoderTracker, leftIntake, rightIntake, verticalSlide;
+    //private CRServo tapeMeasure;
     private ElapsedTime runtime = new ElapsedTime();
     private boolean precision, direction;
     private boolean canTogglePrecision, canToggleDirection, strafeMode;
@@ -23,26 +25,30 @@ public class DeadWheelsTest extends OpMode {
     public void init() {
         //after driver hits init
         setUpDriveTrain();
+        setUpIntake();
+        setUpTapeMeasure();
 
-        parallelLeftEncoderTracker = hardwareMap.get(DcMotorEx.class, "parallelLeftEncoderTracker");
+        /*parallelLeftEncoderTracker = hardwareMap.get(DcMotorEx.class, "parallelLeftEncoderTracker");
         parallelLeftEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        parallelLeftEncoderTracker.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        parallelLeftEncoderTracker.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);*/
 
-        parallelRightEncoderTracker = hardwareMap.get(DcMotorEx.class, "parallelRightEncoderTracker");
+        parallelRightEncoderTracker = hardwareMap.get(DcMotorEx.class, "perpendicularEncoderTracker");
         parallelRightEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         parallelRightEncoderTracker.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        perpendicularEncoderTracker = hardwareMap.get(DcMotorEx.class, "perpendicularEncoderTracker");
-        perpendicularEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        perpendicularEncoderTracker.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        parallelLeftStartingPosition = parallelLeftEncoderTracker.getCurrentPosition();
-        parallelRightStartingPosition = parallelRightEncoderTracker.getCurrentPosition();
-        perpendicularStartingPosition = perpendicularEncoderTracker.getCurrentPosition();
+        parallelLeftStartingPosition = leftIntake.getCurrentPosition();
+        parallelRightStartingPosition = rightIntake.getCurrentPosition();
+        perpendicularStartingPosition = parallelRightEncoderTracker.getCurrentPosition();
 
         precision = false;
         direction = false;
         strafeMode = false;
+
+        verticalSlide = (DcMotorEx) hardwareMap.dcMotor.get("verticalSlide");
+        verticalSlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        verticalSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        verticalSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        verticalSlide.setDirection(DcMotor.Direction.REVERSE);
 
         telemetry.addData("Status", "Initialized");
     }
@@ -68,6 +74,23 @@ public class DeadWheelsTest extends OpMode {
         rightBack.setDirection(DcMotor.Direction.REVERSE);
     }
 
+    public void setUpIntake() {
+        leftIntake = (DcMotorEx) hardwareMap.dcMotor.get("leftIntake");
+        leftIntake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftIntake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftIntake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        rightIntake = (DcMotorEx) hardwareMap.dcMotor.get("rightIntake");
+        rightIntake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightIntake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightIntake.setDirection(DcMotor.Direction.REVERSE);
+    }
+
+    public void setUpTapeMeasure() {
+        //tapeMeasure = (CRServo) hardwareMap.servo.get("tapeMeasure");
+    }
+
     @Override
     //what runs in between robot being initialized and before it plays
     public void init_loop() {
@@ -82,22 +105,27 @@ public class DeadWheelsTest extends OpMode {
 
     @Override
     public void loop() {
-        double parallelLeftTicks = parallelLeftEncoderTracker.getCurrentPosition();
+        double parallelLeftTicks = leftIntake.getCurrentPosition();
         double parallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
-        double perpendicularTicks = perpendicularEncoderTracker.getCurrentPosition();
+        double perpendicularTicks = rightIntake.getCurrentPosition();
 
         positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
-        positionTracker.updateLocationAndPose("normal");
+        //positionTracker.updateLocationAndPose("strafe", telemetry);
 
 
         telemetry.addData("X: ", positionTracker.getCurrentX());
         telemetry.addData("Y: ", positionTracker.getCurrentY());
         telemetry.addData("Current Angle: ", positionTracker.getCurrentAngle());
-        telemetry.addData("parallel left ticks", parallelLeftTicks);
-        telemetry.addData("parallel right ticks", parallelRightTicks);
+        telemetry.addData("parallel left ticks", leftIntake.getCurrentPosition());
+        telemetry.addData("parallel right ticks", parallelRightEncoderTracker.getCurrentPosition());
+        telemetry.addData("perpendicular ticks", rightIntake.getCurrentPosition());
         telemetry.update();
 
+        verticalSlide.setPower(gamepad2.right_stick_y);
+
         driveBot();
+        intake();
+        useTapeMeasure();
     }
 
     public void driveBot() {
@@ -145,5 +173,32 @@ public class DeadWheelsTest extends OpMode {
         telemetry.addData("Rear Motors Power", "Left Rear (%.2f), Right Rear (%.2f)", leftBack.getPower(), rightBack.getPower());
 
         telemetry.update();
+    }
+
+    public void intake() {
+        if (gamepad1.a) {
+            leftIntake.setPower(1);
+            rightIntake.setPower(1);
+        }
+        else if (gamepad1.b) {
+            leftIntake.setPower(-1);
+            rightIntake.setPower(-1);
+        }
+        else {
+            leftIntake.setPower(0);
+            rightIntake.setPower(0);
+        }
+    }
+
+    public void useTapeMeasure() {
+        if (gamepad1.dpad_down) {
+            //tapeMeasure.setPower(-1);
+        }
+        else if (gamepad1.dpad_up) {
+            //tapeMeasure.setPower(1);
+        }
+        else {
+            //tapeMeasure.setPower(0);
+        }
     }
 }

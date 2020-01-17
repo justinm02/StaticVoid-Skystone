@@ -15,48 +15,17 @@ public class RedPlatform extends Auto {
         waitForStart();
 
         try {
-            move(0, -.35, 44, "straight");
-
-            strafe(.3, 0, "strafeleft", 16);
-
-            move(0, -.3, 2, "straight");
-
+            move(0, 15, 180, .5, "straight");
+            move(0, 3, 90, .5, "strafe");
             gripPlatform();
-
-            pause(1.25);
-
-            movePlatform(.3, color);
-
-            pause(.25);
-
-            while (Math.abs(currentAngle()) < 90) {
-                turn("ccw", .2);
-            }
-
-            strafe(.4, 90, "straferight", 12);
-
+            pause(.5);
+            move(0, 5, 0, .725, "straight");
+            PIDTurn(-90, .5);
             releasePlatform();
-
-            pause(1.25);
-
-            move(90, -.6, 33, "straight");
-
-            strafe(.25, 90, "strafeleft", 26);
-
-            moveByTime(2, 90, .3);
-
-            move(90, -.8, 10, "straight");
-
-            gripBlock();
-            pause(1.25);
-
-            //moveSlideByTicks();
-
-            strafe(.3, (int)(currentAngle()), "straferight", 32);
-
-            strafe(.3, (int)(currentAngle()), "strafeleft", 2);
-
-            move(90, -.8, 25, "straight");
+            pause(.5);
+            moveByTime(2, -.3);
+            move(-90, 16, 0, .5, "strafe");
+            move(-90, 20, -90, .5, "straight");
         }
         catch (InterruptedException e) { }
     }
