@@ -139,7 +139,7 @@ public class GamerOp extends OpMode {
         telemetry.update();
 
         useEncoders();
-        newDriveBot();
+        driveBot();
         intake();
         moveSlides();
         gripBlock();
@@ -149,10 +149,6 @@ public class GamerOp extends OpMode {
         bringDownLiftAutomated();
 
         useOneGamepad();
-
-        /*telemetry.addData("leftIntake power", leftIntake.getPower());
-        telemetry.addData("rightIntake power", rightIntake.getPower());
-        telemetry.update();*/
     }
 
     public void useEncoders() {
@@ -201,18 +197,7 @@ public class GamerOp extends OpMode {
         //telemetry.addData("block claw pos", blockClaw.getPosition());
     }
 
-    public void newDriveBot() {
-        //desiredPower/max(powers)
-
-//        if ((gamepad2.b || (useOneGamepad && gamepad1.b)) && !gamepad2.start && !positionChanged) {
-//            blockClaw.setPosition(closed ? 1 : 0.26);
-//            closed = !closed;
-//            positionChanged = true;
-//        }
-//        else if (!gamepad2.b) {
-//            positionChanged = false;
-//        }
-
+    public void driveBot() {
         if (gamepad1.a && !precisionChanged) {
             precision = !precision;
             precisionChanged = true;
@@ -241,8 +226,6 @@ public class GamerOp extends OpMode {
         double leftBackPower = xLinear * Math.cos(joystickAngle) - xTurn;
         double rightBackPower = xLinear * Math.sin(joystickAngle) + xTurn;
 
-        // double maxPower = Math.max()
-
         double[] motorPowers = new double[]{leftFrontPower, rightFrontPower, leftBackPower, rightBackPower};
         convertMotorPowers(motorPowers, xLinear, xTurn);
 
@@ -250,16 +233,6 @@ public class GamerOp extends OpMode {
         rightFront.setPower(precision ? 0.4 * motorPowers[1] : motorPowers[1]);
         leftBack.setPower(precision ? 0.4 * motorPowers[2] : motorPowers[2]);
         rightBack.setPower(precision ? 0.4 * motorPowers[3] : motorPowers[3]);
-        /*
-        leftFront.setPower(scalePower*(Math.sin(directionRadians + 3*Math.PI/4) + correction));
-            leftBack.setPower(scalePower*(Math.sin(directionRadians + Math.PI/4) + correction));
-            rightFront.setPower(scalePower*(Math.sin(directionRadians + Math.PI/4) - correction));
-            rightBack.setPower(scalePower*(Math.sin(directionRadians + 3*Math.PI/4) - correction));
-
-            left front
-            right back
-            sin
-         */
 
         telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFront.getPower(), rightFront.getPower());
         telemetry.addData("joystickAngle", joystickAngle);
@@ -286,55 +259,6 @@ public class GamerOp extends OpMode {
         }
 
         return max;
-    }
-
-    public void driveBot() {
-        // Precision mode toggled by pressing right stick
-        if (gamepad1.a && canTogglePrecision) {
-            precision = !precision;
-            canTogglePrecision = false;
-        }
-        else if (!gamepad1.a)
-            canTogglePrecision = true;
-
-        if (gamepad1.dpad_up) {
-            direction = true;
-        }
-        else if (gamepad1.dpad_down) {
-            direction = false;
-        }
-        if (gamepad1.b && canToggleDirection) {
-            direction = !direction;
-            canTogglePrecision = false;
-        }
-        else if (!gamepad1.b)
-            canToggleDirection = true;
-
-        double x = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
-        double stickAngle = Math.atan2(direction ? -gamepad1.left_stick_y : gamepad1.left_stick_y, direction ? gamepad1.left_stick_x : -gamepad1.left_stick_x); // desired robot angle from the angle of stick
-
-        double powerAngle = 0;
-
-        if (!strafeMode)
-            powerAngle = stickAngle - (Math.PI / 4); //conversion for correct power values
-        else
-            powerAngle = stickAngle - (3 * Math.PI / 4); //conversion for correct power values
-
-        double rightX = gamepad1.right_stick_x;
-
-        final double leftFrontPower = Range.clip(x * Math.cos(powerAngle) - rightX, -1.0, 1.0);
-        final double leftRearPower = Range.clip(x * Math.sin(powerAngle) - rightX, -1.0, 1.0);
-        final double rightFrontPower = Range.clip(x * Math.sin(powerAngle) + rightX, -1.0, 1.0);
-        final double rightRearPower = Range.clip(x * Math.cos(powerAngle) + rightX, -1.0, 1.0);
-
-        //If (?) precision, set up to .2 of power. Else (:) 1.0 of power
-        leftFront.setPower(leftFrontPower * (precision ? 0.4 : 1.0));
-        leftBack.setPower(leftRearPower * (precision ? 0.4 : 1.0));
-        rightFront.setPower(rightFrontPower * (precision ? 0.4 : 1.0));
-        rightBack.setPower(rightRearPower * (precision ? 0.4 : 1.0));
-
-        /*telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFrontPower, rightFrontPower);
-        telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftRearPower, rightRearPower);*/
     }
 
     public void intake() {
