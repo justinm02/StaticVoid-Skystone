@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.teamcode.Autonomous.MotionProfiling.MotionProfiler;
 import org.firstinspires.ftc.teamcode.Autonomous.OpenCV.OpenCV;
 import org.firstinspires.ftc.teamcode.Autonomous.PID.PID;
 import org.firstinspires.ftc.teamcode.Autonomous.Spline.Bezier;
@@ -47,6 +48,9 @@ public abstract class Auto extends LinearOpMode {
 
     private Vuforia vuforia = new Vuforia();
     private OpenCV openCV = new OpenCV();
+
+    private MotionProfiler motionProfiler;
+
     private int cameraMonitorViewId;
     private VuforiaLocalizer.Parameters parameters;
 
@@ -176,7 +180,7 @@ public abstract class Auto extends LinearOpMode {
         return error;
     }
 
-    public void move(double targetHeading, double inches, int direction, double power, String movement) throws InterruptedException {
+    public void move(double targetHeading, double inches, int direction, double maximumPower, String movement) throws InterruptedException {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
         double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
         double basePerpendicularTicks = rightIntake.getCurrentPosition();
@@ -195,12 +199,14 @@ public abstract class Auto extends LinearOpMode {
         double parallelRightTicks = 0;
         double perpendicularTicks = 0;
 
+        double currentPower = 0;
+
         while (dTravelled < inches) {
             double target = targetHeading;
             double current = currentAngle();
 
             //when axis between -179 and 179 degrees is crossed, degrees must be converted from 0 - 360 degrees. 179-(-179) = 358. 179 - 181 = -2. Big difference
-            error = getError(current, target, power);
+            error = getError(current, target, currentPower);
 
             telemetry.addData("error", error);
             telemetry.update();
@@ -209,15 +215,20 @@ public abstract class Auto extends LinearOpMode {
                 correction = strafePID.getCorrection(error, runtime);
             }
             else {
+                motionProfiler = new MotionProfiler(.125);
                 correction = ForwardHeadingPid.getCorrection(error, runtime);
             }
+
+            double proportionTravelled = dTravelled/inches;
+
+            currentPower = motionProfiler.getProfilePower(proportionTravelled, maximumPower);
 
             double leftFrontPower = Math.sin(directionRadians + 3*Math.PI/4) + correction;
             double leftBackPower = Math.sin(directionRadians + Math.PI/4) + correction;
             double rightFrontPower = Math.sin(directionRadians + Math.PI/4) - correction;
             double rightBackPower = Math.sin(directionRadians + 3*Math.PI/4) - correction;
 
-            double conversion = Math.abs(power/getMaxMagnitude(new double[]{leftFrontPower, leftBackPower, rightFrontPower, rightBackPower}));
+            double conversion = Math.abs(currentPower/getMaxMagnitude(new double[]{leftFrontPower, leftBackPower, rightFrontPower, rightBackPower}));
 
             leftFront.setPower(conversion * leftFrontPower);
             leftBack.setPower(conversion * leftBackPower);

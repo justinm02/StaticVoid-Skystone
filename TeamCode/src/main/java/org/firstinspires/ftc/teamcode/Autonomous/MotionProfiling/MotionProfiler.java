@@ -18,7 +18,7 @@ public class MotionProfiler {
         } else if (propTravelled < 1 - accelProp / 2) {
             return 2 * multiplier * Math.pow(accelProp / 2, 2) - multiplier * Math.pow(propTravelled - (1 - accelProp), 2);
         } else if (propTravelled < 1) {
-            return multiplier * Math.pow(propTravelled - 1, 2);
+            return multiplier * Math.pow(propTravelled - 1,  2);
         }
         return 0;
     }
