@@ -175,28 +175,6 @@ public class GamerOp extends OpMode {
         telemetry.update();
     }
 
-    public void gripBlock() {
-        /*if ((gamepad2.b  || (useOneGamepad && gamepad1.b)) && !closed && !gamepad2.start) {
-            blockClaw.setPosition(0);
-            closed = !closed;
-        }
-        else if((!gamepad2.b || (useOneGamepad && gamepad1.b)) && closed && !gamepad2.start) {
-            blockClaw.setPosition(1);
-            closed = !closed;
-        }*/
-
-        if ((gamepad2.b || (useOneGamepad && gamepad1.b)) && !gamepad2.start && !positionChanged) {
-            blockClaw.setPosition(closed ? 1 : 0.26);
-            closed = !closed;
-            positionChanged = true;
-        }
-        else if (!gamepad2.b) {
-            positionChanged = false;
-        }
-
-        //telemetry.addData("block claw pos", blockClaw.getPosition());
-    }
-
     public void driveBot() {
         if (gamepad1.a && !precisionChanged) {
             precision = !precision;
@@ -315,6 +293,17 @@ public class GamerOp extends OpMode {
         telemetry.addData("slide position", verticalSlide.getCurrentPosition());
         telemetry.addData("horizontal limit", horizontalLimit.getValue());
         telemetry.update();*/
+    }
+
+    public void gripBlock() {
+        if ((gamepad2.b || (useOneGamepad && gamepad1.b)) && !gamepad2.start && !positionChanged) {
+            blockClaw.setPosition(closed ? 1 : 0.26);
+            closed = !closed;
+            positionChanged = true;
+        }
+        else if (!gamepad2.b) {
+            positionChanged = false;
+        }
     }
 
     public void rotateBlock() {
