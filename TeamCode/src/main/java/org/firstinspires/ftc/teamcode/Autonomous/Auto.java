@@ -201,6 +201,17 @@ public abstract class Auto extends LinearOpMode {
 
         double currentPower = 0;
 
+        PID headingPID;
+
+        if (movement.contains("strafe")) {
+            headingPID = strafePID;
+            motionProfiler = new MotionProfiler(.125);
+        }
+        else {
+            headingPID = ForwardHeadingPid;
+            motionProfiler = new MotionProfiler(.125);
+        }
+
         while (dTravelled < inches) {
             double target = targetHeading;
             double current = currentAngle();
@@ -211,15 +222,9 @@ public abstract class Auto extends LinearOpMode {
             telemetry.addData("error", error);
             telemetry.update();
 
-            if (movement.contains("strafe")) {
-                correction = strafePID.getCorrection(error, runtime);
-            }
-            else {
-                motionProfiler = new MotionProfiler(.125);
-                correction = ForwardHeadingPid.getCorrection(error, runtime);
-            }
+            correction = headingPID.getCorrection(error, runtime);
 
-            double proportionTravelled = dTravelled/inches;
+            double proportionTravelled = dTravelled/inches + .0001;
 
             currentPower = motionProfiler.getProfilePower(proportionTravelled, maximumPower);
 
@@ -275,6 +280,71 @@ public abstract class Auto extends LinearOpMode {
         halt();
     }
 
+    public void splineMove(double[] xcoords, double[] ycoords, double maximumPower, double offset) throws InterruptedException {
+        double baseParallelLeftTicks = leftIntake.getCurrentPosition();
+        double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
+
+        double parallelLeftTicks = 0;
+        double parallelRightTicks = 0;
+
+        double sRight = 0;
+        double sLeft = 0;
+        double sAvg = 0;
+
+        //double startingPosition = parallelEncoderTracker.getCurrentPosition();
+        Waypoint[] coords = new Waypoint[xcoords.length];
+        boolean inverted = false;
+
+        //set Waypoints per each (x,y)
+        for (int i = 0; i < coords.length; i++) {
+            coords[i] = new Waypoint(xcoords[i], ycoords[i]);
+        }
+
+        //if spline backwards, set inverted to true (lets correction method know to make adjustments to targetHeading in PD correction method)
+        if (maximumPower < 0) {
+            inverted = true;
+        }
+
+        //sets new spline, defines important characteristics
+        Bezier spline = new Bezier(coords);
+        double t = 0.0001;
+        double distanceTraveled;
+        double arclength = spline.getArcLength(); //computes arc length by adding infinitesimally small slices of sqrt( (dx/dt)^2 + (dy/dt)^2 ) (distance formula). This method uses integration, a fundamental component in calculus
+        int lastAngle = (int)currentAngle();
+
+        motionProfiler = new MotionProfiler(.125);
+        double currentPower = 0;
+
+        while (t<=1.0) {
+            heartbeat();
+
+            currentPower = motionProfiler.getProfilePower(t, maximumPower);
+            //constantly adjusts heading based on what the current spline angle should be based on the calculated t
+            correction(currentPower, (int)(180/Math.PI*spline.getAngle(t,  offset)), "spline", inverted, 1.0); //converts lastAngle to radians
+            lastAngle = (int)(180/Math.PI*spline.getAngle(t,  offset)); //converts lastAngle to degrees for telemetry
+            //distanceTraveled computed by converting encoderTraveled ticks on deadwheel to inches traveled
+            parallelLeftTicks = leftIntake.getCurrentPosition() - baseParallelLeftTicks;
+            parallelRightTicks = parallelRightEncoderTracker.getCurrentPosition() - baseParallelRightTicks;
+
+            sRight =(parallelRightTicks)*DEADWHEEL_INCHES_OVER_TICKS;
+            sLeft = (parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS;
+            sAvg = (sLeft+sRight)/2;
+
+            distanceTraveled = sAvg;
+            //t measures progress along curve. Very important for computing splineAngle.
+            t = Math.abs(distanceTraveled/arclength);
+            /*telemetry.addData("Distance ", distanceTraveled);
+            telemetry.addData("t ", t);
+            telemetry.addData("error", currentAngle() - lastAngle);
+            telemetry.addData("dxdt", spline.getdxdt(t));
+            telemetry.addData("spline angle", (int)(180/Math.PI*spline.getAngle(t, offset)));
+            telemetry.addData("current angle", currentAngle());
+            telemetry.update();*/
+        }
+
+        halt();
+    }
+
     public double getMaxMagnitude(double[] arr) {
         double max = Math.abs(arr[0]);
 
@@ -319,67 +389,6 @@ public abstract class Auto extends LinearOpMode {
             telemetry.update();
         }
         horizontalSlide.setPower(0);
-        halt();
-    }
-
-    public void splineMove(double[] xcoords, double[] ycoords, double power, double offset) throws InterruptedException {
-        double baseParallelLeftTicks = leftIntake.getCurrentPosition();
-        double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
-
-        double parallelLeftTicks = 0;
-        double parallelRightTicks = 0;
-
-        double sRight = 0;
-        double sLeft = 0;
-        double sAvg = 0;
-
-        //double startingPosition = parallelEncoderTracker.getCurrentPosition();
-        Waypoint[] coords = new Waypoint[xcoords.length];
-        boolean inverted = false;
-
-        //set Waypoints per each (x,y)
-        for (int i = 0; i < coords.length; i++) {
-            coords[i] = new Waypoint(xcoords[i], ycoords[i]);
-        }
-
-        //if spline backwards, set inverted to true (lets correction method know to make adjustments to targetHeading in PD correction method)
-        if (power < 0) {
-            inverted = true;
-        }
-
-        //sets new spline, defines important characteristics
-        Bezier spline = new Bezier(coords);
-        double t = 0;
-        double distanceTraveled;
-        double arclength = spline.getArcLength(); //computes arc length by adding infinitesimally small slices of sqrt( (dx/dt)^2 + (dy/dt)^2 ) (distance formula). This method uses integration, a fundamental component in calculus
-        int lastAngle = (int)currentAngle();
-
-        while (t<=1.0) {
-            //trackPosition();
-            heartbeat();
-            //constantly adjusts heading based on what the current spline angle should be based on the calculated t
-            correction(power, (int)(180/Math.PI*spline.getAngle(t,  offset)), "spline", inverted, 1.0); //converts lastAngle to radians
-            lastAngle = (int)(180/Math.PI*spline.getAngle(t,  offset)); //converts lastAngle to degrees for telemetry
-            //distanceTraveled computed by converting encoderTraveled ticks on deadwheel to inches traveled
-            parallelLeftTicks = leftIntake.getCurrentPosition() - baseParallelLeftTicks;
-            parallelRightTicks = parallelRightEncoderTracker.getCurrentPosition() - baseParallelRightTicks;
-
-            sRight =(parallelRightTicks)*DEADWHEEL_INCHES_OVER_TICKS;
-            sLeft = (parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS;
-            sAvg = (sLeft+sRight)/2;
-
-            distanceTraveled = sAvg;
-            //t measures progress along curve. Very important for computing splineAngle.
-            t = Math.abs(distanceTraveled/arclength);
-            /*telemetry.addData("Distance ", distanceTraveled);
-            telemetry.addData("t ", t);
-            telemetry.addData("error", currentAngle() - lastAngle);
-            telemetry.addData("dxdt", spline.getdxdt(t));
-            telemetry.addData("spline angle", (int)(180/Math.PI*spline.getAngle(t, offset)));
-            telemetry.addData("current angle", currentAngle());
-            telemetry.update();*/
-        }
-
         halt();
     }
 
