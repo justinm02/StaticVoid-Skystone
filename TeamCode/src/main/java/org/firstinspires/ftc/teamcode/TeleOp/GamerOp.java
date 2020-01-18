@@ -236,12 +236,12 @@ public class GamerOp extends OpMode {
         double xTurn = gamepad1.right_stick_x;
 
 
-        double leftFrontPower = xMagnitude*Math.sin(joystickAngle) - xTurn;
-        double rightFrontPower = xMagnitude*Math.cos(joystickAngle) + xTurn;
-        double leftBackPower = xMagnitude*Math.cos(joystickAngle) - xTurn;
-        double rightBackPower = xMagnitude*Math.sin(joystickAngle) + xTurn;
+        double leftFrontPower = xLinear * Math.sin(joystickAngle) - xTurn;
+        double rightFrontPower = xLinear * Math.cos(joystickAngle) + xTurn;
+        double leftBackPower = xLinear * Math.cos(joystickAngle) - xTurn;
+        double rightBackPower = xLinear * Math.sin(joystickAngle) + xTurn;
 
-       // double maxPower = Math.max()
+        // double maxPower = Math.max()
 
         double[] motorPowers = new double[]{leftFrontPower, rightFrontPower, leftBackPower, rightBackPower};
         convertMotorPowers(motorPowers, xLinear, xTurn);
@@ -269,7 +269,7 @@ public class GamerOp extends OpMode {
     public void convertMotorPowers(double[] motorPowers, double xLinear, double xTurn) {
         double maxPower = getMaxMagnitude(motorPowers);
 
-        double conversion = Math.abs(getMaxMagnitude(new double[]{xLinear, xTurn})/maxPower);
+        double conversion = Math.abs(Math.sqrt((Math.pow(xLinear, 2) + Math.pow(xTurn, 2)) / 2) / maxPower);
 
         for (int i = 0; i < motorPowers.length; i++) {
             motorPowers[i] *= conversion;

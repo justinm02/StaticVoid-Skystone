@@ -32,7 +32,7 @@ public abstract class Auto extends LinearOpMode {
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
     private DcMotorEx[] motors = {leftFront, leftBack, rightFront, rightBack};
-    private PID ForwardHeadingPid = new PID(0.027, 0, 0.0024);
+    private PID ForwardHeadingPid = new PID(0.04, 0, 0.0024);
     private Servo leftPlatformLatcher, rightPlatformLatcher;
     private PID strafePID = new PID(0.05, 0, 0.0014); //still need to be determined and tuned
     public int baseParallelLeftPosition, basePerpendicularPosition, baseParallelRightPosition;
