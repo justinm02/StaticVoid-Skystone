@@ -180,7 +180,7 @@ public abstract class Auto extends LinearOpMode {
         return error;
     }
 
-    public void move(double targetHeading, double inches, int direction, double maximumPower, String movement) throws InterruptedException {
+    public void move(double targetHeading, double inches, int direction, double maximumPower, double initPower, double finalPower, String movement) throws InterruptedException {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
         double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
         double basePerpendicularTicks = rightIntake.getCurrentPosition();
@@ -226,7 +226,7 @@ public abstract class Auto extends LinearOpMode {
 
             double proportionTravelled = dTravelled/inches + .0001;
 
-            currentPower = motionProfiler.getProfilePower(proportionTravelled, maximumPower);
+            currentPower = motionProfiler.getProfilePower(proportionTravelled, maximumPower, initPower, finalPower);
 
             double leftFrontPower = Math.sin(directionRadians + 3*Math.PI/4) + correction;
             double leftBackPower = Math.sin(directionRadians + Math.PI/4) + correction;
@@ -280,7 +280,7 @@ public abstract class Auto extends LinearOpMode {
         halt();
     }
 
-    public void splineMove(double[] xcoords, double[] ycoords, double maximumPower, double offset) throws InterruptedException {
+    public void splineMove(double[] xcoords, double[] ycoords, double maximumPower, double initPower, double finalPower, double offset) throws InterruptedException {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
         double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
 
@@ -318,7 +318,7 @@ public abstract class Auto extends LinearOpMode {
         while (t<=1.0) {
             heartbeat();
 
-            currentPower = motionProfiler.getProfilePower(t, maximumPower);
+            currentPower = motionProfiler.getProfilePower(t, maximumPower, initPower, finalPower);
             //constantly adjusts heading based on what the current spline angle should be based on the calculated t
             correction(currentPower, (int)(180/Math.PI*spline.getAngle(t,  offset)), "spline", inverted, 1.0); //converts lastAngle to radians
             lastAngle = (int)(180/Math.PI*spline.getAngle(t,  offset)); //converts lastAngle to degrees for telemetry

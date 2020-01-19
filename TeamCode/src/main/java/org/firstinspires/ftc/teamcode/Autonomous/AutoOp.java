@@ -10,7 +10,7 @@ public class AutoOp extends Auto {
         waitForStart();
 
         try {
-            move(0, 120, 180, .5, "straight");
+            move(0, 120, 180, .5, 0, 0, "straight");
         //PIDTurn(150);
         //strafe(.25, 0, "strafeleft", 48);
         //move(0, -.3, 200, "straight");

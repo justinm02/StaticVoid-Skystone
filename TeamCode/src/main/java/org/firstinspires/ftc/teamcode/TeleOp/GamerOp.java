@@ -15,14 +15,12 @@ import org.firstinspires.ftc.teamcode.Localization.PositionTracker;
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, verticalSlide, parallelRightEncoderTracker;
-    private Servo blockClaw, blockRotator, leftPlatformLatcher, rightPlatformLatcher;
+    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
-    private boolean precision, direction;
-    private boolean canTogglePrecision, canToggleDirection, strafeMode, precisionChanged, directionChanged;
+    private boolean precision, direction, precisionChanged, directionChanged;
     private boolean useOneGamepad;
-    private int verticalSlideLimit; //may be touchSensor eventually
     private boolean positionChanged = false;
     private boolean closed = false;
     private double baseParallelRightPosition;
@@ -45,7 +43,6 @@ public class GamerOp extends OpMode {
 
         precision = false;
         direction = false;
-        strafeMode = false;
         useOneGamepad = false;
         precisionChanged = false;
         directionChanged = false;
@@ -102,7 +99,7 @@ public class GamerOp extends OpMode {
         //verticalSlide.setDirection(DcMotor.Direction.REVERSE);
 
         horizontalSlide = hardwareMap.get(CRServo.class, "horizontalSlide");
-        horizontalSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+        //horizontalSlide.setDirection(DcMotorSimple.Direction.REVERSE);
 
         horizontalLimit = hardwareMap.touchSensor.get("horizontalLimit");
         lowerVerticalLimit = hardwareMap.touchSensor.get("lowerVerticalLimit");
@@ -110,12 +107,10 @@ public class GamerOp extends OpMode {
 
     public void setUpServos() {
         blockClaw = hardwareMap.servo.get("blockClaw");
-        blockRotator = hardwareMap.servo.get("blockRotator");
         leftPlatformLatcher = hardwareMap.servo.get("leftPlatformLatcher");
         rightPlatformLatcher = hardwareMap.servo.get("rightPlatformLatcher");
 
         blockClaw.setPosition(.26);
-        blockRotator.setPosition(.485);
 
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(1);
@@ -144,7 +139,6 @@ public class GamerOp extends OpMode {
         moveSlides();
         gripBlock();
         gripPlatform();
-        rotateBlock();
 
         bringDownLiftAutomated();
 
@@ -283,7 +277,7 @@ public class GamerOp extends OpMode {
             verticalSlide.setPower(0);
         }*/
         if (horizontalLimit.getValue() < 1 || gamepad2.right_stick_y < 0) {
-            horizontalSlide.setPower(gamepad2.right_stick_y);
+            horizontalSlide.setPower(Range.clip(gamepad2.right_stick_y, -.5, .5));
         }
         else {
             horizontalSlide.setPower(0);
@@ -306,19 +300,6 @@ public class GamerOp extends OpMode {
         }
     }
 
-    public void rotateBlock() {
-        //values will be adjusted
-        if (gamepad2.x) {
-            blockRotator.setPosition(0.485); //return to normal
-        }
-        else if (gamepad2.y) {
-            blockRotator.setPosition(.9);
-        }
-        else if (gamepad2.a) {
-            blockRotator.setPosition(0);
-        }
-    }
-
     public void gripPlatform() {
         if (gamepad1.right_trigger > 0) {
             leftPlatformLatcher.setPosition(0);
@@ -331,17 +312,16 @@ public class GamerOp extends OpMode {
     }
 
     public void bringDownLiftAutomated() {
-        if ((gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.dpad_right || gamepad2.dpad_left) && (0.25 < blockRotator.getPosition() && blockRotator.getPosition() < 0.75)) {
+        if (gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.dpad_right || gamepad2.dpad_left) {
             blockClaw.setPosition(.26);
-            blockRotator.setPosition(.485);
             if (horizontalLimit.getValue() < 1) {
-                horizontalSlide.setPower(1);
+                horizontalSlide.setPower(.99);
             }
             else {
                 horizontalSlide.setPower(0);
             }
             if (lowerVerticalLimit.getValue() < 1) {
-                verticalSlide.setPower(-1);
+                verticalSlide.setPower(-.99);
             }
             else {
                 verticalSlide.setPower(0);
