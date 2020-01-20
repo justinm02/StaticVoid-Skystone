@@ -45,37 +45,27 @@ public class PositionTracker {
         strafeEncoderTicks = strafe;
     }
 
-    public void updateLocationAndPose(String type, Telemetry telemetry, double gyroAngle){
+    public void updateLocationAndPose(Telemetry telemetry, double gyroAngle){
         double sRight = (rightEncoderTicks - lastRightEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
         double sLeft = (leftEncoderTicks - lastLeftEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
         double sAvg = (sLeft+sRight)/2;
         double deltaAngle = (sRight-sLeft)/(width);
-        //if(type.equals("strafe")){
-            double sStrafe = strafeEncoderTicks*DEADWHEEL_INCHES_OVER_TICKS;
-            /*double strafeX = sAvg*Math.cos(currentAngle) + sStrafe*Math.sin(currentAngle);
-            double strafeY = sAvg*Math.sin(currentAngle) - sStrafe*Math.cos(currentAngle);*/
-            //double strafeMagnitude = Math.sqrt(Math.pow(sAvg, 2) + Math.pow(sStrafe, 2));
-            currentAngle += deltaAngle;
 
-            double deltaX = sAvg*Math.cos(Math.toRadians(gyroAngle)) + sStrafe*Math.sin(Math.toRadians(gyroAngle));
-            double deltaY = sAvg*Math.sin(Math.toRadians(gyroAngle)) - sStrafe*Math.cos(Math.toRadians(gyroAngle));
+        double sStrafe = (strafeEncoderTicks-lastStrafeEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
 
-            currentX += deltaX;
-            currentY += deltaY;
-        /*}
-        else {
-            double deltaX = sAvg*Math.cos(currentAngle + deltaAngle/2);
-            double deltaY = sAvg*Math.sin(currentAngle + deltaAngle/2);
+        currentAngle += deltaAngle;
 
-            double deltaX = sAvg*Math.cos(Math.toRadians(gyroAngle));
-            double deltaY = sAvg*Math.sin(Math.toRadians(gyroAngle));
+        double deltaX = sAvg*Math.cos(Math.toRadians(currentAngle)) + sStrafe*Math.sin(Math.toRadians(currentAngle));
+        double deltaY = sAvg*Math.sin(Math.toRadians(currentAngle)) - sStrafe*Math.cos(Math.toRadians(currentAngle));
 
-            currentX += deltaX;
-            currentY += deltaY;
-            currentAngle += deltaAngle;
-        }*/
+        currentX += deltaX;
+        currentY += deltaY;
+
         telemetry.addData("sAvg", sAvg);
-        telemetry.addData("deltaAngle", Math.toDegrees(gyroAngle + deltaAngle/2));
+        telemetry.addData("sStrafe", sStrafe);
+        telemetry.addData("currentAngle", Math.toDegrees(currentAngle));
+        telemetry.addData("sRight", sRight);
+        telemetry.addData("sLeft", sLeft);
         telemetry.addData("currentX", currentX);
         telemetry.addData("currentY", currentY);
         telemetry.update();

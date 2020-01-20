@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Localization.PositionTracker;
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, verticalSlide, parallelRightEncoderTracker;
-    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher;
+    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher, autoBlockGrabber, blockAligner;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
@@ -109,11 +109,15 @@ public class GamerOp extends OpMode {
         blockClaw = hardwareMap.servo.get("blockClaw");
         leftPlatformLatcher = hardwareMap.servo.get("leftPlatformLatcher");
         rightPlatformLatcher = hardwareMap.servo.get("rightPlatformLatcher");
+        autoBlockGrabber = hardwareMap.servo.get("autoBlockGrabber");
+        blockAligner = hardwareMap.servo.get("blockAligner");
 
         blockClaw.setPosition(.26);
 
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(1);
+        autoBlockGrabber.setPosition(.8);
+        blockAligner.setPosition(.5);
     }
 
     @Override
@@ -139,6 +143,7 @@ public class GamerOp extends OpMode {
         moveSlides();
         gripBlock();
         gripPlatform();
+        autoGripBlock();
 
         bringDownLiftAutomated();
 
@@ -159,13 +164,13 @@ public class GamerOp extends OpMode {
         }
 
 
-        telemetry.addData("X: ", positionTracker.getCurrentX());
+        /*telemetry.addData("X: ", positionTracker.getCurrentX());
         telemetry.addData("Y: ", positionTracker.getCurrentY());
         telemetry.addData("Current Angle: ", positionTracker.getCurrentAngle());
         telemetry.addData("parallel left ticks", parallelLeftTicks);
         telemetry.addData("parallel right ticks", parallelRightTicks);
         telemetry.addData("perpendicular ticks", perpendicularTicks);
-        telemetry.addData("Distance traveled", (parallelLeftTicks + parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS/2);
+        telemetry.addData("Distance traveled", (parallelLeftTicks + parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS/2);*/
         telemetry.update();
     }
 
@@ -246,23 +251,9 @@ public class GamerOp extends OpMode {
             leftIntake.setPower(0);
             rightIntake.setPower(0);
         }
-
-        /*telemetry.addData("leftIntake pos", leftIntake.getCurrentPosition());
-        telemetry.addData("rightIntake pos", rightIntake.getCurrentPosition());
-        telemetry.update();*/
     }
 
     public void moveSlides() {
-        /*if (gamepad2.dpad_up || (useOneGamepad && gamepad1.dpad_up)) {
-            verticalSlide.setPower(1);
-        }
-        else if (gamepad2.dpad_down || (useOneGamepad && gamepad1.dpad_down)) {
-            verticalSlide.setPower(-1);
-        }
-        else
-            verticalSlide.setPower(0);*/
-
-        /*if (verticalSlide.getCurrentPosition() < verticalSlideLimit || gamepad2.left_stick_y > 0) {*/
         if(lowerVerticalLimit.getValue() < 1 || gamepad2.left_stick_y < 0) {
             verticalSlide.setPower(-gamepad2.left_stick_y);
         }
@@ -272,12 +263,9 @@ public class GamerOp extends OpMode {
         if (lowerVerticalLimit.getValue() == 0 && gamepad2.left_stick_y == 0) {
             verticalSlide.setPower(.12);
         }
-        /*}
-        else {
-            verticalSlide.setPower(0);
-        }*/
+
         if (horizontalLimit.getValue() < 1 || gamepad2.right_stick_y < 0) {
-            horizontalSlide.setPower(Range.clip(gamepad2.right_stick_y, -.5, .5));
+            horizontalSlide.setPower(Range.clip(gamepad2.right_stick_y, -.85, .85));
         }
         else {
             horizontalSlide.setPower(0);
@@ -311,11 +299,26 @@ public class GamerOp extends OpMode {
         }
     }
 
+    public void autoGripBlock() {
+        if (gamepad1.b) {
+            autoBlockGrabber.setPosition(0); // goes up
+        }
+        else if (gamepad1.x) {
+            autoBlockGrabber.setPosition(1); // goes down
+        }
+        if (gamepad1.a) {
+            blockAligner.setPosition(1); // goes down
+        }
+        else if (gamepad1.y) {
+            blockAligner.setPosition(0.5); // goes up
+        }
+    }
+
     public void bringDownLiftAutomated() {
         if (gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.dpad_right || gamepad2.dpad_left) {
             blockClaw.setPosition(.26);
             if (horizontalLimit.getValue() < 1) {
-                horizontalSlide.setPower(.99);
+                horizontalSlide.setPower(.7);
             }
             else {
                 horizontalSlide.setPower(0);

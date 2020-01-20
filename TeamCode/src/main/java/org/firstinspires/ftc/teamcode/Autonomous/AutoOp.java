@@ -2,23 +2,17 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name = "Auto", group = "Park")
+@Autonomous(name = "Auto", group = "Autonomous")
 public class AutoOp extends Auto {
+    private double[] xCoords = new double[]{0, 48, 48};
+    private double[] yCoords = new double[]{0,0,48};
 
     public void runOpMode() {
         initialize();
         waitForStart();
-
         try {
-            move(0, 120, 180, .5, 0, 0, "straight");
-        //PIDTurn(150);
-        //strafe(.25, 0, "strafeleft", 48);
-        //move(0, -.3, 200, "straight");
-        //moveSlideByTicks(400, .5);
-            // diagonalStrafe(-45, -90, 0, 0);
-            //determineSkystonePosition();
-            //move(0, 120, -90, .5, "strafe");
-            //move(0, 120, 90, 1);
+            //move(0, 96, -90, .8, 0.25, 0, "strafe");
+            splineMove(xCoords, yCoords, .75, .25, 0, 0);
         }
         catch (InterruptedException e) { }
     }

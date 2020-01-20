@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Autonomous.MotionProfiling;
+package org.firstinspires.ftc.teamcode.MotionProfiling;
 
 public class MotionProfiler {
     private double accelProp; //the percent of the distance spent accelerating MUST BE LESS THAN .5

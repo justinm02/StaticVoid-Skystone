@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.teamcode.Autonomous.MotionProfiling.MotionProfiler;
+import org.firstinspires.ftc.teamcode.MotionProfiling.MotionProfiler;
 import org.firstinspires.ftc.teamcode.Autonomous.OpenCV.OpenCV;
 import org.firstinspires.ftc.teamcode.Autonomous.PID.PID;
 import org.firstinspires.ftc.teamcode.Autonomous.Spline.Bezier;
@@ -28,14 +28,14 @@ public abstract class Auto extends LinearOpMode {
     public ElapsedTime runtime = new ElapsedTime();
     private BNO055IMU imu;
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, verticalSlide, parallelRightEncoderTracker;
-    private Servo blockClaw, blockRotator;
+    private Servo blockClaw, blockRotator, autoBlockGrabber, blockAligner;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
     private DcMotorEx[] motors = {leftFront, leftBack, rightFront, rightBack};
     private PID ForwardHeadingPid = new PID(0.04, 0, 0.0024);
     private Servo leftPlatformLatcher, rightPlatformLatcher;
-    private PID strafePID = new PID(0.05, 0, 0.0014); //still need to be determined and tuned
+    private PID strafePID = new PID(0.05, 0, 0.003); //still need to be determined and tuned
     public int baseParallelLeftPosition, basePerpendicularPosition, baseParallelRightPosition;
     private double xPos = 0;
     private double yPos = 0;
@@ -136,12 +136,16 @@ public abstract class Auto extends LinearOpMode {
         blockRotator = hardwareMap.servo.get("blockRotator");
         leftPlatformLatcher = hardwareMap.servo.get("leftPlatformLatcher");
         rightPlatformLatcher = hardwareMap.servo.get("rightPlatformLatcher");
+        autoBlockGrabber = hardwareMap.servo.get("autoBlockGrabber");
+        blockAligner = hardwareMap.servo.get("blockAligner");
 
         blockClaw.setPosition(.26);
         blockRotator.setPosition(.485);
 
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(1);
+        autoBlockGrabber.setPosition(.8);
+        blockAligner.setPosition(.5);
     }
 
     public void initGyro() {
@@ -219,12 +223,12 @@ public abstract class Auto extends LinearOpMode {
             //when axis between -179 and 179 degrees is crossed, degrees must be converted from 0 - 360 degrees. 179-(-179) = 358. 179 - 181 = -2. Big difference
             error = getError(current, target, currentPower);
 
-            telemetry.addData("error", error);
-            telemetry.update();
+//            telemetry.addData("error", error);
+//            telemetry.update();
 
             correction = headingPID.getCorrection(error, runtime);
 
-            double proportionTravelled = dTravelled/inches + .0001;
+            double proportionTravelled = dTravelled/inches;
 
             currentPower = motionProfiler.getProfilePower(proportionTravelled, maximumPower, initPower, finalPower);
 
@@ -250,14 +254,13 @@ public abstract class Auto extends LinearOpMode {
             sStrafe = perpendicularTicks*DEADWHEEL_INCHES_OVER_TICKS;
 
             dTravelled = Math.sqrt(Math.pow(sAvg,2) + Math.pow(sStrafe,2));
-            telemetry.addData("dTravelled", dTravelled);
+            /*telemetry.addData("dTravelled", dTravelled);
             telemetry.addData("sLeft", sLeft);
             telemetry.addData("sRight", sRight);
-            telemetry.update();
+            telemetry.update();*/
 
-            //positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
-
-            //positionTracker.updateLocationAndPose("", telemetry, currentAngle());
+            positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
+            positionTracker.updateLocationAndPose(telemetry, currentAngle());
 
             /*telemetry.addData("dTravelled", dTravelled);
             telemetry.addData("sLeft", sLeft);
@@ -276,16 +279,18 @@ public abstract class Auto extends LinearOpMode {
             telemetry.addData("deadwheel angle", positionTracker.getCurrentAngle());*/
             telemetry.update();
         }
-
         halt();
+        pause(5);
     }
 
     public void splineMove(double[] xcoords, double[] ycoords, double maximumPower, double initPower, double finalPower, double offset) throws InterruptedException {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
         double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
+        double basePerpendicularTicks = rightIntake.getCurrentPosition();
 
         double parallelLeftTicks = 0;
         double parallelRightTicks = 0;
+        double perpendicularTicks = 0;
 
         double sRight = 0;
         double sLeft = 0;
@@ -307,7 +312,7 @@ public abstract class Auto extends LinearOpMode {
 
         //sets new spline, defines important characteristics
         Bezier spline = new Bezier(coords);
-        double t = 0.0001;
+        double t = 0;
         double distanceTraveled;
         double arclength = spline.getArcLength(); //computes arc length by adding infinitesimally small slices of sqrt( (dx/dt)^2 + (dy/dt)^2 ) (distance formula). This method uses integration, a fundamental component in calculus
         int lastAngle = (int)currentAngle();
@@ -321,28 +326,24 @@ public abstract class Auto extends LinearOpMode {
             currentPower = motionProfiler.getProfilePower(t, maximumPower, initPower, finalPower);
             //constantly adjusts heading based on what the current spline angle should be based on the calculated t
             correction(currentPower, (int)(180/Math.PI*spline.getAngle(t,  offset)), "spline", inverted, 1.0); //converts lastAngle to radians
-            lastAngle = (int)(180/Math.PI*spline.getAngle(t,  offset)); //converts lastAngle to degrees for telemetry
             //distanceTraveled computed by converting encoderTraveled ticks on deadwheel to inches traveled
             parallelLeftTicks = leftIntake.getCurrentPosition() - baseParallelLeftTicks;
             parallelRightTicks = parallelRightEncoderTracker.getCurrentPosition() - baseParallelRightTicks;
+            perpendicularTicks = rightIntake.getCurrentPosition() - basePerpendicularTicks;
 
             sRight =(parallelRightTicks)*DEADWHEEL_INCHES_OVER_TICKS;
             sLeft = (parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS;
             sAvg = (sLeft+sRight)/2;
 
             distanceTraveled = sAvg;
-            //t measures progress along curve. Very important for computing splineAngle.
-            t = Math.abs(distanceTraveled/arclength);
-            /*telemetry.addData("Distance ", distanceTraveled);
-            telemetry.addData("t ", t);
-            telemetry.addData("error", currentAngle() - lastAngle);
-            telemetry.addData("dxdt", spline.getdxdt(t));
-            telemetry.addData("spline angle", (int)(180/Math.PI*spline.getAngle(t, offset)));
-            telemetry.addData("current angle", currentAngle());
-            telemetry.update();*/
-        }
 
+            positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
+            positionTracker.updateLocationAndPose(telemetry, currentAngle());
+
+            t = Math.abs(distanceTraveled/arclength);
+        }
         halt();
+        pause(5);
     }
 
     public double getMaxMagnitude(double[] arr) {
@@ -393,15 +394,9 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void PIDTurn(int targetHeading, double max) throws InterruptedException {
-        double error = 5;
+        double error = getError(currentAngle(), targetHeading, max);
         while(Math.abs(error) > 2) {
-            double target = targetHeading;
-            double current = currentAngle();
-
-            //if the spline motion is backwards, the target must be flipped 180 degrees in order to match with spline.getAngle()
-
-            //when axis between -179 and 179 degrees is crossed, degrees must be converted from 0 - 360 degrees. 179-(-179) = 358. 179 - 181 = -2. Big difference
-            error = getError(current, target, max);
+            error = getError(currentAngle(), targetHeading, max);
 
             telemetry.addData("error", error);
             telemetry.update();
@@ -490,15 +485,6 @@ public abstract class Auto extends LinearOpMode {
         }
     }
 
-    public void pause(double time) throws InterruptedException {
-        double pause = runtime.time();
-        //pause robot for "pause" seconds
-        while (runtime.time() - pause < time) {
-            heartbeat();
-            telemetry.update();
-        }
-    }
-
     public boolean motorsBusy(int ticks, double startingPosition) {
         return Math.abs(leftBack.getCurrentPosition() - startingPosition) < ticks && Math.abs(rightBack.getCurrentPosition() - startingPosition) < ticks && Math.abs(leftFront.getCurrentPosition() - startingPosition) < ticks && Math.abs(rightFront.getCurrentPosition() - startingPosition) < ticks;
     }
@@ -531,8 +517,16 @@ public abstract class Auto extends LinearOpMode {
         rightPlatformLatcher.setPosition(.8);
     }
 
+    public void bringAlignerDown() {
+        blockAligner.setPosition(0);
+
+    }
     public void gripBlock() {
-        blockClaw.setPosition(1);
+        autoBlockGrabber.setPosition(1);
+    }
+
+    public void bringAlignerUp() {
+        blockAligner.setPosition(.5);
     }
 
     public void releaseBlock() {
@@ -569,6 +563,17 @@ public abstract class Auto extends LinearOpMode {
             verticalSlide.setPower(-.7);
         }
         verticalSlide.setPower(0);
+    }
+
+    public void pause(double time) throws InterruptedException {
+        double pause = runtime.time();
+        //pause robot for "pause" seconds
+        while (runtime.time() - pause < time) {
+            heartbeat();
+            telemetry.addData("current x: ", positionTracker.getCurrentX());
+            telemetry.addData("current y: ", positionTracker.getCurrentY());
+            telemetry.update();
+        }
     }
 
     public void heartbeat() throws InterruptedException{
