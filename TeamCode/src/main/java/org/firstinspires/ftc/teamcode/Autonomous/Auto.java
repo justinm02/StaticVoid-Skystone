@@ -260,7 +260,7 @@ public abstract class Auto extends LinearOpMode {
             telemetry.update();*/
 
             positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
-            positionTracker.updateLocationAndPose(telemetry, currentAngle());
+            positionTracker.updateLocationAndPose(telemetry, currentAngle(), "move");
 
             /*telemetry.addData("dTravelled", dTravelled);
             telemetry.addData("sLeft", sLeft);
@@ -338,9 +338,11 @@ public abstract class Auto extends LinearOpMode {
             distanceTraveled = sAvg;
 
             positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
-            positionTracker.updateLocationAndPose(telemetry, currentAngle());
+            positionTracker.updateLocationAndPose(telemetry, currentAngle(), "spline");
 
             t = Math.abs(distanceTraveled/arclength);
+            telemetry.addData("dx/dt", spline.getdxdt(t));
+            telemetry.update();
         }
         halt();
         pause(5);
@@ -437,8 +439,8 @@ public abstract class Auto extends LinearOpMode {
         if (movementType.contains("straight") || movementType.contains("spline")) {
             double correction = ForwardHeadingPid.getCorrection(error, runtime);
 
-            double leftPower = Range.clip(power - correction, -max, max);
-            double rightPower = Range.clip(power + correction, -max, max);
+            double leftPower = Range.clip(power + correction, -max, max);
+            double rightPower = Range.clip(power - correction, -max, max);
 
             leftFront.setPower(leftPower);
             rightFront.setPower(rightPower);
@@ -450,10 +452,6 @@ public abstract class Auto extends LinearOpMode {
 
         //pd correction for strafe motion. Right and left are opposites
         else if (movementType.contains("strafe")) {
-            if (Math.abs(error) > 180) {
-                error = 360 - error;
-            }
-
             double correction = strafePID.getCorrection(error, runtime);
 
             if (movementType.contains("left")) {
@@ -470,6 +468,8 @@ public abstract class Auto extends LinearOpMode {
             }
         }
 
+        telemetry.addData("current Angle", current);
+        telemetry.addData("target", target);
         telemetry.addData("error", error);
         telemetry.addData("lf", leftFront.getPower());
         telemetry.addData("lb", leftBack.getPower());
