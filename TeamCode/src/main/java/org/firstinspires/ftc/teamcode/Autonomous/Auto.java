@@ -60,11 +60,6 @@ public abstract class Auto extends LinearOpMode {
         RIGHT
     }
 
-    public enum ALLIANCE_COLOR {
-        RED,
-        BLUE
-    }
-
     public void initialize() {
         initMotors();
         initServos();
@@ -144,7 +139,7 @@ public abstract class Auto extends LinearOpMode {
 
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(1);
-        autoBlockGrabber.setPosition(.8);
+        autoBlockGrabber.setPosition(0);
         blockAligner.setPosition(.5);
     }
 
@@ -518,7 +513,7 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void bringAlignerDown() {
-        blockAligner.setPosition(0);
+        blockAligner.setPosition(1);
 
     }
     public void gripBlock() {

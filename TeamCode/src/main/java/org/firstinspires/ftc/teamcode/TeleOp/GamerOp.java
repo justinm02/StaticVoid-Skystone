@@ -198,13 +198,13 @@ public class GamerOp extends OpMode {
         double xTurn = gamepad1.right_stick_x;
 
 
-        double leftFrontPower = xLinear * Math.sin(joystickAngle) - xTurn;
-        double rightFrontPower = xLinear * Math.cos(joystickAngle) + xTurn;
-        double leftBackPower = xLinear * Math.cos(joystickAngle) - xTurn;
-        double rightBackPower = xLinear * Math.sin(joystickAngle) + xTurn;
+        double leftFrontPower = xLinear*Math.sin(joystickAngle) - xTurn;
+        double rightFrontPower = xLinear*Math.cos(joystickAngle) + xTurn;
+        double leftBackPower = xLinear*Math.cos(joystickAngle) - xTurn;
+        double rightBackPower = xLinear*Math.sin(joystickAngle) + xTurn;
 
         double[] motorPowers = new double[]{leftFrontPower, rightFrontPower, leftBackPower, rightBackPower};
-        convertMotorPowers(motorPowers, xLinear, xTurn);
+        motorPowers = convertMotorPowers(motorPowers, xLinear, xTurn);
 
         leftFront.setPower(precision ? 0.4 * motorPowers[0] : motorPowers[0]);
         rightFront.setPower(precision ? 0.4 * motorPowers[1] : motorPowers[1]);
@@ -216,14 +216,20 @@ public class GamerOp extends OpMode {
         telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftBack.getPower(), rightBack.getPower());
     }
 
-    public void convertMotorPowers(double[] motorPowers, double xLinear, double xTurn) {
+    public double[] convertMotorPowers(double[] motorPowers, double xLinear, double xTurn) {
         double maxPower = getMaxMagnitude(motorPowers);
 
-        double conversion = Math.abs(Math.sqrt((Math.pow(xLinear, 2) + Math.pow(xTurn, 2)) / 2) / maxPower);
+        double conversion = Math.abs(Math.sqrt((Math.pow(xLinear,2) + Math.pow(xTurn, 2))/*/2*/)/maxPower);
+
+        telemetry.addData("maxPower", maxPower);
+        telemetry.addData("conversion", conversion);
+        telemetry.update();
 
         for (int i = 0; i < motorPowers.length; i++) {
             motorPowers[i] *= conversion;
         }
+
+        return motorPowers;
     }
 
     public double getMaxMagnitude(double[] arr) {

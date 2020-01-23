@@ -66,15 +66,15 @@ public class OpenCV extends LinearOpMode {
 
         runtime.reset();
 
-        if (team.contains("red")) {
-            midPos = new float[]{4.5f / 8f + offsetX, 5f / 8f + offsetY};
-            leftPos = new float[]{2.5f/8f+offsetX, 5f/8f+offsetY};
-            rightPos  = new float[]{6.5f/8f+offsetX, 5f/8f+offsetY};
+        if (team.contains("blue")) {
+            midPos = new float[]{4.5f / 8f + offsetX, 3f / 8f + offsetY};
+            leftPos = new float[]{2.5f/8f+offsetX, 3f/8f+offsetY};
+            rightPos  = new float[]{6.5f/8f+offsetX, 3f/8f+offsetY};
         }
         else {
-            midPos = new float[]{5.5f / 8f + offsetX, 5f / 8f + offsetY};
-            leftPos = new float[]{3.5f/8f+offsetX, 5f/8f+offsetY};
-            rightPos  = new float[]{7.5f/8f+offsetX, 5f/8f+offsetY};
+            midPos = new float[]{5.5f / 8f + offsetX, 3f / 8f + offsetY};
+            leftPos = new float[]{3.5f/8f+offsetX, 3f/8f+offsetY};
+            rightPos  = new float[]{7.5f/8f+offsetX, 3f/8f+offsetY};
         }
 
         int[] detectionVals = new int[3];
