@@ -24,6 +24,7 @@ public class RedSkystone extends Auto {
             if (position.equals(SKYSTONE_POSITION.MIDDLE)) {
                 move(0, 25, -95, .6, .25, .15, "strafe");
             }
+            pause(.5);
             gripBlock();
             pause(1);
             bringAlignerUp();

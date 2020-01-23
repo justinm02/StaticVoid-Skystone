@@ -275,7 +275,6 @@ public abstract class Auto extends LinearOpMode {
             telemetry.update();
         }
         halt();
-        pause(5);
     }
 
     public void splineMove(double[] xcoords, double[] ycoords, double maximumPower, double initPower, double finalPower, double offset) throws InterruptedException {
