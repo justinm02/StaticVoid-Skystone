@@ -10,15 +10,12 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.Localization.PositionTracker;
-
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, verticalSlide, parallelRightEncoderTracker;
-    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher, autoBlockGrabber, blockAligner;
+    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher, autoBlockGrabber, blockAligner, capstoneDeployer;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
-    private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
     private boolean precision, direction, precisionChanged, directionChanged;
     private boolean useOneGamepad;
     private boolean positionChanged = false;
@@ -111,6 +108,7 @@ public class GamerOp extends OpMode {
         rightPlatformLatcher = hardwareMap.servo.get("rightPlatformLatcher");
         autoBlockGrabber = hardwareMap.servo.get("autoBlockGrabber");
         blockAligner = hardwareMap.servo.get("blockAligner");
+        capstoneDeployer = hardwareMap.servo.get("capstoneDeployer");
 
         blockClaw.setPosition(.26);
 
@@ -137,13 +135,14 @@ public class GamerOp extends OpMode {
     public void loop() {
         telemetry.update();
 
-        useEncoders();
+        //useEncoders();
         driveBot();
         intake();
         moveSlides();
         gripBlock();
         gripPlatform();
         autoGripBlock();
+        deployCapstone();
 
         bringDownLiftAutomated();
 
@@ -155,7 +154,6 @@ public class GamerOp extends OpMode {
         double parallelRightTicks = parallelRightEncoderTracker.getCurrentPosition() - baseParallelRightPosition;
         double perpendicularTicks = rightIntake.getCurrentPosition() - basePerpendicularPosition;
 
-        positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
         if(Math.abs(gamepad1.left_stick_x) < Math.cos(Math.toRadians(5)) || Math.sqrt(Math.pow(gamepad1.left_stick_x,2) + Math.pow(gamepad1.left_stick_y,2)) < .1 ) {
             //positionTracker.updateLocationAndPose("", telemetry);
         }
@@ -307,16 +305,25 @@ public class GamerOp extends OpMode {
 
     public void autoGripBlock() {
         if (gamepad1.b) {
-            autoBlockGrabber.setPosition(0); // goes up
+            autoBlockGrabber.setPosition(0); // up
         }
         else if (gamepad1.x) {
-            autoBlockGrabber.setPosition(1); // goes down
+            autoBlockGrabber.setPosition(1); // down
         }
         if (gamepad1.a) {
-            blockAligner.setPosition(1); // goes down
+            blockAligner.setPosition(1); // down
         }
         else if (gamepad1.y) {
-            blockAligner.setPosition(0.5); // goes up
+            blockAligner.setPosition(0.2); // up
+        }
+    }
+
+    public void deployCapstone() {
+        if (gamepad1.dpad_up) {
+            capstoneDeployer.setPosition(0);
+        }
+        else if (gamepad1.dpad_down) {
+            capstoneDeployer.setPosition(1);
         }
     }
 
@@ -337,6 +344,7 @@ public class GamerOp extends OpMode {
             }
         }
     }
+
     public void useOneGamepad() {
         if ((gamepad1.right_bumper && gamepad1.left_bumper && gamepad1.left_trigger == 1 && gamepad1.right_trigger == 1) || (gamepad2.right_bumper && gamepad2.left_bumper && gamepad2.left_trigger == 1 && gamepad2.right_trigger == 1)) {
             useOneGamepad = !useOneGamepad;

@@ -41,10 +41,10 @@ public abstract class Auto extends LinearOpMode {
     private double yPos = 0;
     private final double GEAR_RATIO = 1.00000, WHEEL_DIAMETER = 4, WHEEL_TICKS_PER_REV = 560;
     // C = circumference
-    private final double C = WHEEL_TICKS_PER_REV/(Math.PI*WHEEL_DIAMETER*GEAR_RATIO), STRAFE_COEFFICIENT = 1.20;
+    private final double C = WHEEL_TICKS_PER_REV / (Math.PI * WHEEL_DIAMETER * GEAR_RATIO), STRAFE_COEFFICIENT = 1.20;
     private final int deadWheelTicks = 4096;
-    private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05; //circumference of parallel deadwheel
-    private final double DEADWHEEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/deadWheelTicks; //conversion used to convert inches to ticks (what encoderTracker.getCurrentPosition() reads)
+    private final double WHEEL_CIRCUMFERENCE_IN = Math.PI * 3.05; //circumference of parallel deadwheel
+    private final double DEADWHEEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN / deadWheelTicks; //conversion used to convert inches to ticks (what encoderTracker.getCurrentPosition() reads)
 
     private Vuforia vuforia = new Vuforia();
     private OpenCV openCV = new OpenCV();
@@ -88,7 +88,7 @@ public abstract class Auto extends LinearOpMode {
         leftFront.setDirection(DcMotor.Direction.REVERSE);
         leftBack.setDirection(DcMotor.Direction.REVERSE);
 
-        motors = new DcMotorEx[] {leftFront, leftBack, rightFront, rightBack};
+        motors = new DcMotorEx[]{leftFront, leftBack, rightFront, rightBack};
 
         for (DcMotorEx motor : motors) {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -140,7 +140,7 @@ public abstract class Auto extends LinearOpMode {
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(1);
         autoBlockGrabber.setPosition(0);
-        blockAligner.setPosition(.5);
+        blockAligner.setPosition(.2);
     }
 
     public void initGyro() {
@@ -155,8 +155,7 @@ public abstract class Auto extends LinearOpMode {
 
         if (detectionVals[0] == 0) {
             return SKYSTONE_POSITION.LEFT;
-        }
-        else if (detectionVals[1] == 0) {
+        } else if (detectionVals[1] == 0) {
             return SKYSTONE_POSITION.MIDDLE;
         }
         return SKYSTONE_POSITION.RIGHT;
@@ -167,11 +166,11 @@ public abstract class Auto extends LinearOpMode {
 
         double error1 = current - target;
         double error2;
-        if(current < 0)
-            error2 = (current+360)-(target);
+        if (current < 0)
+            error2 = (current + 360) - (target);
         else
-            error2 = (current-360)-(target);
-        if(Math.abs(error1) <= Math.abs(error2))
+            error2 = (current - 360) - (target);
+        if (Math.abs(error1) <= Math.abs(error2))
             error = error1;
         else
             error = error2;
@@ -183,7 +182,7 @@ public abstract class Auto extends LinearOpMode {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
         double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
         double basePerpendicularTicks = rightIntake.getCurrentPosition();
-        double directionRadians = Math.toRadians(direction-targetHeading);
+        double directionRadians = Math.toRadians(direction - targetHeading);
 
         double sRight = 0;
         double sLeft = 0;
@@ -205,8 +204,7 @@ public abstract class Auto extends LinearOpMode {
         if (movement.contains("strafe")) {
             headingPID = strafePID;
             motionProfiler = new MotionProfiler(.125);
-        }
-        else {
+        } else {
             headingPID = ForwardHeadingPid;
             motionProfiler = new MotionProfiler(.125);
         }
@@ -223,16 +221,16 @@ public abstract class Auto extends LinearOpMode {
 
             correction = headingPID.getCorrection(error, runtime);
 
-            double proportionTravelled = dTravelled/inches;
+            double proportionTravelled = dTravelled / inches;
 
             currentPower = motionProfiler.getProfilePower(proportionTravelled, maximumPower, initPower, finalPower);
 
-            double leftFrontPower = Math.sin(directionRadians + 3*Math.PI/4) + correction;
-            double leftBackPower = Math.sin(directionRadians + Math.PI/4) + correction;
-            double rightFrontPower = Math.sin(directionRadians + Math.PI/4) - correction;
-            double rightBackPower = Math.sin(directionRadians + 3*Math.PI/4) - correction;
+            double leftFrontPower = Math.sin(directionRadians + 3 * Math.PI / 4) + correction;
+            double leftBackPower = Math.sin(directionRadians + Math.PI / 4) + correction;
+            double rightFrontPower = Math.sin(directionRadians + Math.PI / 4) - correction;
+            double rightBackPower = Math.sin(directionRadians + 3 * Math.PI / 4) - correction;
 
-            double conversion = Math.abs(currentPower/getMaxMagnitude(new double[]{leftFrontPower, leftBackPower, rightFrontPower, rightBackPower}));
+            double conversion = Math.abs(currentPower / getMaxMagnitude(new double[]{leftFrontPower, leftBackPower, rightFrontPower, rightBackPower}));
 
             leftFront.setPower(conversion * leftFrontPower);
             leftBack.setPower(conversion * leftBackPower);
@@ -243,12 +241,12 @@ public abstract class Auto extends LinearOpMode {
             parallelRightTicks = parallelRightEncoderTracker.getCurrentPosition() - baseParallelRightTicks;
             perpendicularTicks = rightIntake.getCurrentPosition() - basePerpendicularTicks;
 
-            sRight =(parallelRightTicks)*DEADWHEEL_INCHES_OVER_TICKS;
-            sLeft = (parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS;
-            sAvg = (sLeft+sRight)/2;
-            sStrafe = perpendicularTicks*DEADWHEEL_INCHES_OVER_TICKS;
+            sRight = (parallelRightTicks) * DEADWHEEL_INCHES_OVER_TICKS;
+            sLeft = (parallelLeftTicks) * DEADWHEEL_INCHES_OVER_TICKS;
+            sAvg = (sLeft + sRight) / 2;
+            sStrafe = perpendicularTicks * DEADWHEEL_INCHES_OVER_TICKS;
 
-            dTravelled = Math.sqrt(Math.pow(sAvg,2) + Math.pow(sStrafe,2));
+            dTravelled = Math.sqrt(Math.pow(sAvg, 2) + Math.pow(sStrafe, 2));
             /*telemetry.addData("dTravelled", dTravelled);
             telemetry.addData("sLeft", sLeft);
             telemetry.addData("sRight", sRight);
@@ -309,32 +307,32 @@ public abstract class Auto extends LinearOpMode {
         double t = 0;
         double distanceTraveled;
         double arclength = spline.getArcLength(); //computes arc length by adding infinitesimally small slices of sqrt( (dx/dt)^2 + (dy/dt)^2 ) (distance formula). This method uses integration, a fundamental component in calculus
-        int lastAngle = (int)currentAngle();
+        int lastAngle = (int) currentAngle();
 
         motionProfiler = new MotionProfiler(.125);
         double currentPower = 0;
 
-        while (t<=1.0) {
+        while (t <= 1.0) {
             heartbeat();
 
             currentPower = motionProfiler.getProfilePower(t, maximumPower, initPower, finalPower);
             //constantly adjusts heading based on what the current spline angle should be based on the calculated t
-            correction(currentPower, (int)(180/Math.PI*spline.getAngle(t,  offset)), "spline", inverted, 1.0); //converts lastAngle to radians
+            correction(currentPower, (int) (180 / Math.PI * spline.getAngle(t, offset)), "spline", inverted, 1.0); //converts lastAngle to radians
             //distanceTraveled computed by converting encoderTraveled ticks on deadwheel to inches traveled
             parallelLeftTicks = leftIntake.getCurrentPosition() - baseParallelLeftTicks;
             parallelRightTicks = parallelRightEncoderTracker.getCurrentPosition() - baseParallelRightTicks;
             perpendicularTicks = rightIntake.getCurrentPosition() - basePerpendicularTicks;
 
-            sRight =(parallelRightTicks)*DEADWHEEL_INCHES_OVER_TICKS;
-            sLeft = (parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS;
-            sAvg = (sLeft+sRight)/2;
+            sRight = (parallelRightTicks) * DEADWHEEL_INCHES_OVER_TICKS;
+            sLeft = (parallelLeftTicks) * DEADWHEEL_INCHES_OVER_TICKS;
+            sAvg = (sLeft + sRight) / 2;
 
             distanceTraveled = sAvg;
 
             positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
             positionTracker.updateLocationAndPose(telemetry, currentAngle(), "spline");
 
-            t = Math.abs(distanceTraveled/arclength);
+            t = Math.abs(distanceTraveled / arclength);
             telemetry.addData("dx/dt", spline.getdxdt(t));
             telemetry.update();
         }
@@ -391,7 +389,7 @@ public abstract class Auto extends LinearOpMode {
 
     public void PIDTurn(int targetHeading, double max) throws InterruptedException {
         double error = getError(currentAngle(), targetHeading, max);
-        while(Math.abs(error) > 2) {
+        while (Math.abs(error) > 2) {
             error = getError(currentAngle(), targetHeading, max);
 
             telemetry.addData("error", error);
@@ -415,15 +413,14 @@ public abstract class Auto extends LinearOpMode {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
     }
 
-    public void correction(double power, double targetHeading, String movementType, boolean inverted, double max)
-    {
+    public void correction(double power, double targetHeading, String movementType, boolean inverted, double max) {
         //sets target and current angles
         double target = targetHeading;
         double current = currentAngle();
 
         //if the spline motion is backwards, the target must be flipped 180 degrees in order to match with spline.getAngle()
         if (inverted && movementType.contains("spline")) {
-            target = targetHeading + 180;
+            target = targetHeading - 180;
         }
 
         //when axis between -179 and 179 degrees is crossed, degrees must be converted from 0 - 360 degrees. 179-(-179) = 358. 179 - 181 = -2. Big difference
@@ -453,8 +450,7 @@ public abstract class Auto extends LinearOpMode {
                 rightFront.setPower(Range.clip(power - correction, -1.0, 1.0));
                 leftBack.setPower(Range.clip(power + correction, -1.0, 1.0));
                 rightBack.setPower(Range.clip(-power - correction, -1.0, 1.0));
-            }
-            else if (movementType.contains("right")) {
+            } else if (movementType.contains("right")) {
                 leftFront.setPower(Range.clip(power + correction, -1.0, 1.0));
                 rightFront.setPower(Range.clip(-power - correction, -1.0, 1.0));
                 leftBack.setPower(Range.clip(-power + correction, -1.0, 1.0));
@@ -469,7 +465,7 @@ public abstract class Auto extends LinearOpMode {
         telemetry.addData("lb", leftBack.getPower());
         telemetry.addData("rf", rightFront.getPower());
         telemetry.addData("rb", rightBack.getPower());
-        telemetry.addData("avg power", (rightBack.getPower() + rightFront.getPower() + leftBack.getPower() + leftFront.getPower())/4);
+        telemetry.addData("avg power", (rightBack.getPower() + rightFront.getPower() + leftBack.getPower() + leftFront.getPower()) / 4);
         telemetry.update();
     }
 
@@ -515,16 +511,17 @@ public abstract class Auto extends LinearOpMode {
         blockAligner.setPosition(1);
 
     }
+
     public void gripBlock() {
         autoBlockGrabber.setPosition(1);
     }
 
     public void bringAlignerUp() {
-        blockAligner.setPosition(.5);
+        blockAligner.setPosition(.2);
     }
 
     public void releaseBlock() {
-        blockClaw.setPosition(.26);
+        blockClaw.setPosition(0);
     }
 
     public void extendHorizontalSlide() {
@@ -570,9 +567,9 @@ public abstract class Auto extends LinearOpMode {
         }
     }
 
-    public void heartbeat() throws InterruptedException{
+    public void heartbeat() throws InterruptedException {
         //if opMode is stopped, will throw and catch an InterruptedException rather than resulting in red text and program crash on phone
-        if(!opModeIsActive()) {
+        if (!opModeIsActive()) {
             throw new InterruptedException();
         }
     }

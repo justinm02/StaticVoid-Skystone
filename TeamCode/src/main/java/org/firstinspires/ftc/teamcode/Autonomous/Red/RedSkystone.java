@@ -9,9 +9,6 @@ import org.firstinspires.ftc.teamcode.Autonomous.Auto;
 public class RedSkystone extends Auto {
 
     private double xSkystone[], ySkystone[];
-    private double xCrossBridge[], yCrossBridge[];
-    private double xPlatform[] = new double[]{0, 16, 16};
-    private double yPlatform[] = new double[]{0, 0, -12};
 
     public void runOpMode() {
         initialize();
@@ -22,12 +19,17 @@ public class RedSkystone extends Auto {
 
             bringAlignerDown();
             if (position.equals(SKYSTONE_POSITION.MIDDLE)) {
-                move(0, 25, -95, .6, .25, .15, "strafe");
+                move(0, 27, -90, .5, .25, 0, "strafe");
+                xSkystone = new double[]{0, -75, -10, -85};
+                ySkystone = new double[]{0, 0, -3, -3};
             }
-            pause(.5);
             gripBlock();
             pause(1);
             bringAlignerUp();
+            pause(1);
+
+            move(0, 5, 90, .35, .25, 0, "strafe");
+            splineMove(xSkystone, ySkystone, -.8, -.15, 0, 0);
         }
         catch (InterruptedException e) {
         }
