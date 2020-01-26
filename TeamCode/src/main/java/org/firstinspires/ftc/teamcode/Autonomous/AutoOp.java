@@ -11,8 +11,9 @@ public class AutoOp extends Auto {
         initialize();
         waitForStart();
         try {
-            //move(0, 96, -90, .8, 0.25, 0, "strafe");
-            splineMove(xCoords, yCoords, .75, .25, 0, 0);
+            //move(0, 96, 0, .8, 0.25, 0, "straight", true);
+            moveByTime(15, .5, 0);
+            //splineMove(xCoords, yCoords, .75, .25, 0, 0, true);
         }
         catch (InterruptedException e) { }
     }

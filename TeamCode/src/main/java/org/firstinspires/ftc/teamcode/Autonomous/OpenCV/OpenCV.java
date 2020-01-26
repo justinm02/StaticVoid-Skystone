@@ -31,12 +31,12 @@ public class OpenCV extends LinearOpMode {
 
     //0 means skystone, 1 means yellow stone
     //-1 for debug, but we can keep it like this because if it works, it should change to either 0 or 255
-    private static int valMid = -1;
-    private static int valLeft = -1;
-    private static int valRight = -1;
+    private static int valMid = 255;
+    private static int valLeft = 255;
+    private static int valRight = 255;
 
     private static float rectHeight = .6f/8f;
-    private static float rectWidth = 1.5f/8f;
+    private static float rectWidth = 1.0f/8f;
 
     private static float offsetX = 0f/8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
     private static float offsetY = 0f/8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
@@ -55,37 +55,41 @@ public class OpenCV extends LinearOpMode {
 
     }
 
-    public int[] detectSkystone(int cameraMonitorViewId, String team) throws InterruptedException {
-
+    public void initCamera(int cameraMonitorViewId) {
         phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
-        phoneCam.openCameraDevice();//open camera
-        phoneCam.setPipeline(new StageSwitchingPipeline());//different stages
-        phoneCam.startStreaming(rows, cols, OpenCvCameraRotation.SIDEWAYS_LEFT);   //display on RC
-        //width, height
-        //width = height in this case, because camera is in portrait mode.
 
-        runtime.reset();
+        //phoneCam.closeCameraDevice();
+    }
 
+    public void openCamera(String team) {
         if (team.contains("blue")) {
             midPos = new float[]{4.5f / 8f + offsetX, 3f / 8f + offsetY};
             leftPos = new float[]{2.5f/8f+offsetX, 3f/8f+offsetY};
             rightPos  = new float[]{6.5f/8f+offsetX, 3f/8f+offsetY};
         }
         else {
-            midPos = new float[]{5.5f / 8f + offsetX, 3f / 8f + offsetY};
-            leftPos = new float[]{3.5f/8f+offsetX, 3f/8f+offsetY};
-            rightPos  = new float[]{7.5f/8f+offsetX, 3f/8f+offsetY};
+            midPos = new float[]{2.5f/8f + offsetX, 5f/8f + offsetY};
+            leftPos = new float[]{0.5f/8f+offsetX, 5f/8f+offsetY};
+            rightPos  = new float[]{4.5f/8f+offsetX, 5f/8f+offsetY};
         }
+        phoneCam.openCameraDevice();
+    }
+
+    public int[] detectSkystone() {
+        phoneCam.setPipeline(new StageSwitchingPipeline());//different stages
+        phoneCam.startStreaming(rows, cols, OpenCvCameraRotation.SIDEWAYS_RIGHT);   //display on RC
 
         int[] detectionVals = new int[3];
 
-        while (valLeft != 255 && valMid != 255 && valRight != 255) {
-            sleep(100);
+        double current = runtime.time();
 
-            detectionVals[0] = valLeft;
-            detectionVals[1] = valMid;
-            detectionVals[2] = valRight;
+        while(!(valLeft == 0 ^ valMid == 0 ^ valRight == 0) && runtime.time() - current < 2) {
+            sleep(100);
         }
+
+        detectionVals[0] = valLeft;
+        detectionVals[1] = valMid;
+        detectionVals[2] = valRight;
 
         return detectionVals;
     }

@@ -35,7 +35,7 @@ public abstract class Auto extends LinearOpMode {
     private DcMotorEx[] motors = {leftFront, leftBack, rightFront, rightBack};
     private PID ForwardHeadingPid = new PID(0.04, 0, 0.0024);
     private Servo leftPlatformLatcher, rightPlatformLatcher;
-    private PID strafePID = new PID(0.05, 0, 0.003); //still need to be determined and tuned
+    private PID strafePID = new PID(0.026, 0, 0.0038); //still need to be determined and tuned
     public int baseParallelLeftPosition, basePerpendicularPosition, baseParallelRightPosition;
     private double xPos = 0;
     private double yPos = 0;
@@ -64,6 +64,8 @@ public abstract class Auto extends LinearOpMode {
         initMotors();
         initServos();
         initGyro();
+
+        openCV.initCamera(hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()));
 
         runtime = new ElapsedTime();
 
@@ -138,7 +140,7 @@ public abstract class Auto extends LinearOpMode {
         blockRotator.setPosition(.485);
 
         leftPlatformLatcher.setPosition(0);
-        rightPlatformLatcher.setPosition(1);
+        rightPlatformLatcher.setPosition(0);
         autoBlockGrabber.setPosition(0);
         blockAligner.setPosition(.2);
     }
@@ -151,14 +153,23 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public SKYSTONE_POSITION determineSkystonePosition(String team) throws InterruptedException {
-        int[] detectionVals = openCV.detectSkystone(hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()), team);
+        openCV.openCamera(team);
+        pause(.25);
+        //pause(.5);
+
+        int[] detectionVals = openCV.detectSkystone();
 
         if (detectionVals[0] == 0) {
             return SKYSTONE_POSITION.LEFT;
-        } else if (detectionVals[1] == 0) {
+        }
+        else if (detectionVals[1] == 0) {
             return SKYSTONE_POSITION.MIDDLE;
         }
-        return SKYSTONE_POSITION.RIGHT;
+        else if (detectionVals[2] == 0) {
+            return SKYSTONE_POSITION.RIGHT;
+        }
+
+        return SKYSTONE_POSITION.LEFT;
     }
 
     public double getError(double current, double target, double scalePower) {
@@ -178,7 +189,7 @@ public abstract class Auto extends LinearOpMode {
         return error;
     }
 
-    public void move(double targetHeading, double inches, int direction, double maximumPower, double initPower, double finalPower, String movement) throws InterruptedException {
+    public void move(double targetHeading, double inches, int direction, double maximumPower, double initPower, double finalPower, String movement, boolean halt) throws InterruptedException {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
         double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
         double basePerpendicularTicks = rightIntake.getCurrentPosition();
@@ -272,10 +283,13 @@ public abstract class Auto extends LinearOpMode {
             telemetry.addData("deadwheel angle", positionTracker.getCurrentAngle());*/
             telemetry.update();
         }
-        halt();
+
+        if (halt) {
+            halt();
+        }
     }
 
-    public void splineMove(double[] xcoords, double[] ycoords, double maximumPower, double initPower, double finalPower, double offset) throws InterruptedException {
+    public void splineMove(double[] xcoords, double[] ycoords, double maximumPower, double initPower, double finalPower, double offset, boolean halt) throws InterruptedException {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
         double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
         double basePerpendicularTicks = rightIntake.getCurrentPosition();
@@ -333,11 +347,12 @@ public abstract class Auto extends LinearOpMode {
             positionTracker.updateLocationAndPose(telemetry, currentAngle(), "spline");
 
             t = Math.abs(distanceTraveled / arclength);
-            telemetry.addData("dx/dt", spline.getdxdt(t));
+            //telemetry.addData("target", spline.getAngle(t, offset));
             telemetry.update();
         }
-        halt();
-        pause(5);
+        if (halt) {
+            halt();
+        }
     }
 
     public double getMaxMagnitude(double[] arr) {
@@ -352,11 +367,23 @@ public abstract class Auto extends LinearOpMode {
         return max;
     }
 
-    public void moveByTime(double time, double power) {
+    public void moveByTime(double time, double power, double targetHeading) throws InterruptedException {
         double current = runtime.time();
 
         while (runtime.time() - current < time) {
+            heartbeat();
+            double target = targetHeading;
+            double currentAngle = currentAngle();
 
+            //when axis between -179 and 179 degrees is crossed, degrees must be converted from 0 - 360 degrees. 179-(-179) = 358. 179 - 181 = -2. Big difference
+            double error = getError(currentAngle, target, power);
+
+            double correction = ForwardHeadingPid.getCorrection(error, runtime);
+
+            leftFront.setPower(power + correction);
+            leftBack.setPower(power + correction);
+            rightFront.setPower(power - correction);
+            rightBack.setPower(power - correction);
         }
         halt();
     }
@@ -420,7 +447,7 @@ public abstract class Auto extends LinearOpMode {
 
         //if the spline motion is backwards, the target must be flipped 180 degrees in order to match with spline.getAngle()
         if (inverted && movementType.contains("spline")) {
-            target = targetHeading - 180;
+            target = (targetHeading > 0) ? (targetHeading - 180) : (targetHeading + 180);
         }
 
         //when axis between -179 and 179 degrees is crossed, degrees must be converted from 0 - 360 degrees. 179-(-179) = 358. 179 - 181 = -2. Big difference
@@ -498,21 +525,22 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void gripPlatform() {
-        leftPlatformLatcher.setPosition(.625);
-        rightPlatformLatcher.setPosition(.275);
+        leftPlatformLatcher.setPosition(1);
+        rightPlatformLatcher.setPosition(1);
     }
 
     public void releasePlatform() {
         leftPlatformLatcher.setPosition(0);
-        rightPlatformLatcher.setPosition(.8);
+        rightPlatformLatcher.setPosition(0);
     }
 
     public void bringAlignerDown() {
-        blockAligner.setPosition(1);
-
+        blockAligner.setPosition(.6);
     }
 
-    public void gripBlock() {
+    public void gripBlock() throws InterruptedException {
+        blockAligner.setPosition(1);
+        pause(.25);
         autoBlockGrabber.setPosition(1);
     }
 
@@ -521,7 +549,7 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void releaseBlock() {
-        blockClaw.setPosition(0);
+        autoBlockGrabber.setPosition(0);
     }
 
     public void extendHorizontalSlide() {
@@ -561,9 +589,9 @@ public abstract class Auto extends LinearOpMode {
         //pause robot for "pause" seconds
         while (runtime.time() - pause < time) {
             heartbeat();
-            telemetry.addData("current x: ", positionTracker.getCurrentX());
+            /*telemetry.addData("current x: ", positionTracker.getCurrentX());
             telemetry.addData("current y: ", positionTracker.getCurrentY());
-            telemetry.update();
+            telemetry.update();*/
         }
     }
 

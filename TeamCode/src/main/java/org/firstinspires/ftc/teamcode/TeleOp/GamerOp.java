@@ -20,12 +20,15 @@ public class GamerOp extends OpMode {
     private boolean useOneGamepad;
     private boolean positionChanged = false;
     private boolean closed = false;
+    private boolean deployerPositionChanged = false;
+    private boolean deployerClosed = false;
     private double baseParallelRightPosition;
     private double baseParallelLeftPosition;
     private double basePerpendicularPosition;
     private final int deadWheelTicks = 4096;
     private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05; //circumference of parallel deadwheel
     private final double DEADWHEEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/deadWheelTicks;
+    private double time = -999;
 
     @Override
     public void init() {
@@ -113,9 +116,9 @@ public class GamerOp extends OpMode {
         blockClaw.setPosition(.26);
 
         leftPlatformLatcher.setPosition(0);
-        rightPlatformLatcher.setPosition(1);
-        autoBlockGrabber.setPosition(.8);
-        blockAligner.setPosition(.5);
+        rightPlatformLatcher.setPosition(0);
+        autoBlockGrabber.setPosition(0);
+        blockAligner.setPosition(.2);
     }
 
     @Override
@@ -294,35 +297,41 @@ public class GamerOp extends OpMode {
 
     public void gripPlatform() {
         if (gamepad1.right_trigger > 0) {
-            leftPlatformLatcher.setPosition(0);
+            leftPlatformLatcher.setPosition(1);
             rightPlatformLatcher.setPosition(1);
         }
         else if (gamepad1.left_trigger > 0) {
-            leftPlatformLatcher.setPosition(.625);
-            rightPlatformLatcher.setPosition(.275);
+            leftPlatformLatcher.setPosition(0);
+            rightPlatformLatcher.setPosition(0);
         }
     }
 
     public void autoGripBlock() {
-        if (gamepad1.b) {
+        if (gamepad1.dpad_up) {
             autoBlockGrabber.setPosition(0); // up
         }
-        else if (gamepad1.x) {
+        else if (gamepad1.dpad_down) {
             autoBlockGrabber.setPosition(1); // down
         }
-        if (gamepad1.a) {
+        if (gamepad1.dpad_left) {
             blockAligner.setPosition(1); // down
         }
-        else if (gamepad1.y) {
+        else if (gamepad1.dpad_right) {
             blockAligner.setPosition(0.2); // up
         }
     }
 
     public void deployCapstone() {
-        if (gamepad1.dpad_up) {
-            capstoneDeployer.setPosition(0);
+        if (gamepad2.a && !gamepad2.start && !deployerPositionChanged) {
+            time = runtime.time();
+            capstoneDeployer.setPosition(deployerClosed ? 1 : 0);
+            deployerClosed = !deployerClosed;
+            deployerPositionChanged = true;
         }
-        else if (gamepad1.dpad_down) {
+        else if (!gamepad2.a) {
+            deployerPositionChanged = false;
+        }
+        if (runtime.time() - time > 1.5) {
             capstoneDeployer.setPosition(1);
         }
     }
@@ -331,13 +340,13 @@ public class GamerOp extends OpMode {
         if (gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.dpad_right || gamepad2.dpad_left) {
             blockClaw.setPosition(.26);
             if (horizontalLimit.getValue() < 1) {
-                horizontalSlide.setPower(.7);
+                horizontalSlide.setPower(.85);
             }
             else {
                 horizontalSlide.setPower(0);
             }
             if (lowerVerticalLimit.getValue() < 1) {
-                verticalSlide.setPower(-.99);
+                verticalSlide.setPower(-1);
             }
             else {
                 verticalSlide.setPower(0);
