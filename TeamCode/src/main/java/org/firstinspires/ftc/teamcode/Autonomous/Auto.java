@@ -154,8 +154,7 @@ public abstract class Auto extends LinearOpMode {
 
     public SKYSTONE_POSITION determineSkystonePosition(String team) throws InterruptedException {
         openCV.openCamera(team);
-        pause(.25);
-        //pause(.5);
+        pause(0.5);
 
         int[] detectionVals = openCV.detectSkystone();
 
@@ -165,11 +164,13 @@ public abstract class Auto extends LinearOpMode {
         else if (detectionVals[1] == 0) {
             return SKYSTONE_POSITION.MIDDLE;
         }
-        else if (detectionVals[2] == 0) {
+        else {
+            if (detectionVals[2] != 0) {
+                telemetry.addData("POSITION FAILED", SKYSTONE_POSITION.RIGHT);
+                telemetry.update();
+            }
             return SKYSTONE_POSITION.RIGHT;
         }
-
-        return SKYSTONE_POSITION.LEFT;
     }
 
     public double getError(double current, double target, double scalePower) {

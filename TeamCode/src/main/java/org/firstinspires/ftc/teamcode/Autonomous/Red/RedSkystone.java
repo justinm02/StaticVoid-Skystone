@@ -20,6 +20,9 @@ public class RedSkystone extends Auto {
         try {
             position = determineSkystonePosition("red");
 
+            movePlatformX = new double[]{0, 20, 20};
+            movePlatformY = new double[]{0, 0, -14};
+
 //            double current = runtime.time();
 //            while (runtime.time() - current < 2) {
 //                telemetry.addData("position", position);
@@ -27,10 +30,6 @@ public class RedSkystone extends Auto {
 //            }
 
             bringAlignerDown();
-
-
-            movePlatformX = new double[]{0, 20, 20};
-            movePlatformY = new double[]{0, 0, -14};
 
             if (position.equals(SKYSTONE_POSITION.MIDDLE)) {
                 goMiddle();
@@ -101,9 +100,9 @@ public class RedSkystone extends Auto {
     }
 
     public void goMiddle() throws InterruptedException {
-        move(0, 27, -88, .7, .4, 0, "strafe", true);
+        move(0, 27, -84, .7, .4, 0, "strafe", true);
         xSkystone = new double[]{0, -5, -8, -30};
-        ySkystone = new double[]{0, 0, 5, 5};
+        ySkystone = new double[]{0, 0, 3.5, 3.5};
 
         xPlatform = new double[]{0, -15, -15, -40};
         yPlatform = new double[]{5, 5, -3, -3};
@@ -128,15 +127,12 @@ public class RedSkystone extends Auto {
 
         splineMove(xCrossBridge, yCrossBridge, .8, .35, .65, 0, false);
         bringAlignerDown();
-        if (position != SKYSTONE_POSITION.LEFT) {
-            move(0, 58, -25, .65, .5, .5, "strafe", true);
-        }
-        else {
-            move(0, 50, -25, .65, .5, .5, "straight", false);
-            moveByTime(1.25, 0.5, 0);
-        }
 
-        move(0, 2, -87, .3, .3, 0, "strafe", true);
+        //move(0, 58, -25, .65, .5, .5, "strafe", true);
+        move(0, 56, 0, .65, .5, .5, "strafe", true);
+
+//        move(0, 2, -87, .3, .3, 0, "strafe", true);
+        move(0, 9.5, -87, .3, .3, 0, "strafe", true);
 
         grabBlock();
         pause(.25);
@@ -240,6 +236,6 @@ public class RedSkystone extends Auto {
 
     public void park() throws InterruptedException {
         move(0, 10, -77, 0.85, 0.4, 0.3, "strafe", true);
-        move(0, 26, 0, 0.85, .4, .4, "straight", true);
+        move(0, 23.5, 0, 0.85, .4, .4, "straight", true);
     }
 }

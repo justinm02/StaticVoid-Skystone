@@ -63,22 +63,22 @@ public class OpenCV extends LinearOpMode {
 
     public void openCamera(String team) {
         if (team.contains("blue")) {
-            midPos = new float[]{4.5f / 8f + offsetX, 3f / 8f + offsetY};
-            leftPos = new float[]{2.5f/8f+offsetX, 3f/8f+offsetY};
-            rightPos  = new float[]{6.5f/8f+offsetX, 3f/8f+offsetY};
+            midPos = new float[]{3.5f / 8f + offsetX, 5f / 8f + offsetY};
+            leftPos = new float[]{2.0f/8f+offsetX, 5f/8f+offsetY};
+            rightPos  = new float[]{5.0f/8f+offsetX, 5f/8f+offsetY};
+            rectWidth = 0.5f/8f;
         }
         else {
-            midPos = new float[]{2.5f/8f + offsetX, 5f/8f + offsetY};
-            leftPos = new float[]{0.5f/8f+offsetX, 5f/8f+offsetY};
-            rightPos  = new float[]{4.5f/8f+offsetX, 5f/8f+offsetY};
+            midPos = new float[]{2.5f/8f + offsetX, 5.2f/8f + offsetY};
+            leftPos = new float[]{1.0f/8f+offsetX, 5.2f/8f+offsetY};
+            rightPos  = new float[]{4.0f/8f+offsetX, 5.2f/8f+offsetY};
         }
         phoneCam.openCameraDevice();
+        phoneCam.setPipeline(new StageSwitchingPipeline());//different stages
+        phoneCam.startStreaming(rows, cols, OpenCvCameraRotation.SIDEWAYS_RIGHT);   //display on RC
     }
 
     public int[] detectSkystone() {
-        phoneCam.setPipeline(new StageSwitchingPipeline());//different stages
-        phoneCam.startStreaming(rows, cols, OpenCvCameraRotation.SIDEWAYS_RIGHT);   //display on RC
-
         int[] detectionVals = new int[3];
 
         double current = runtime.time();
