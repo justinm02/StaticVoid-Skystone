@@ -58,7 +58,7 @@ public class OpenCV extends LinearOpMode {
     public void initCamera(int cameraMonitorViewId) {
         phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
 
-        //phoneCam.closeCameraDevice();
+        phoneCam.closeCameraDevice();
     }
 
     public void openCamera(String team) {

@@ -11,7 +11,7 @@ public class Strafe extends Auto {
 
         try {
 
-            move(0, 120, 90, .5,0,0, "strafe", true);
+            move(0, 120, 90, .5,.3,0, "strafe", true);
         } catch (InterruptedException e) {
         }
     }

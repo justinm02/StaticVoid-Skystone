@@ -28,7 +28,7 @@ public abstract class Auto extends LinearOpMode {
     public ElapsedTime runtime = new ElapsedTime();
     private BNO055IMU imu;
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, verticalSlide, parallelRightEncoderTracker;
-    private Servo blockClaw, blockRotator, autoBlockGrabber, blockAligner;
+    public Servo blockClaw, blockRotator, autoBlockGrabber, blockAligner;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
@@ -139,6 +139,12 @@ public abstract class Auto extends LinearOpMode {
         blockClaw.setPosition(.26);
         blockRotator.setPosition(.485);
 
+        leftPlatformLatcher.setPosition(0);
+        rightPlatformLatcher.setPosition(0);
+        autoBlockGrabber.setPosition(0);
+        blockAligner.setPosition(.2);
+
+        //test
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(0);
         autoBlockGrabber.setPosition(0);
@@ -290,6 +296,34 @@ public abstract class Auto extends LinearOpMode {
         }
     }
 
+    public void moveByWheelEncoders(double targetHeading, double inches, double power, String movementType) throws InterruptedException {
+        resetMotors();
+
+        double currentPosition = leftBack.getCurrentPosition();
+
+        int ticks = (int)(inches * C);
+
+        while (motorsBusy(ticks, currentPosition)) {
+            correction(power, targetHeading, movementType, false, 1);
+        }
+
+        halt();
+    }
+
+    public void strafeByWheelEncoders(double targetHeading, double inches, double power, String movementType) {
+        resetMotors();
+
+        double currentPosition = leftBack.getCurrentPosition();
+
+        int ticks = (int)(inches * C * STRAFE_COEFFICIENT);
+
+        while (motorsBusy(ticks, currentPosition)) {
+            correction(power, targetHeading, movementType, false, 1);
+        }
+
+        halt();
+    }
+
     public void splineMove(double[] xcoords, double[] ycoords, double maximumPower, double initPower, double finalPower, double offset, boolean halt) throws InterruptedException {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
         double baseParallelRightTicks = parallelRightEncoderTracker.getCurrentPosition();
@@ -322,7 +356,6 @@ public abstract class Auto extends LinearOpMode {
         double t = 0;
         double distanceTraveled;
         double arclength = spline.getArcLength(); //computes arc length by adding infinitesimally small slices of sqrt( (dx/dt)^2 + (dy/dt)^2 ) (distance formula). This method uses integration, a fundamental component in calculus
-        int lastAngle = (int) currentAngle();
 
         motionProfiler = new MotionProfiler(.125);
         double currentPower = 0;
@@ -332,7 +365,7 @@ public abstract class Auto extends LinearOpMode {
 
             currentPower = motionProfiler.getProfilePower(t, maximumPower, initPower, finalPower);
             //constantly adjusts heading based on what the current spline angle should be based on the calculated t
-            correction(currentPower, (int) (180 / Math.PI * spline.getAngle(t, offset)), "spline", inverted, 1.0); //converts lastAngle to radians
+            correction(currentPower, (int) (Math.toDegrees(spline.getAngle(t, offset))), "spline", inverted, 1.0); //converts lastAngle to radians
             //distanceTraveled computed by converting encoderTraveled ticks on deadwheel to inches traveled
             parallelLeftTicks = leftIntake.getCurrentPosition() - baseParallelLeftTicks;
             parallelRightTicks = parallelRightEncoderTracker.getCurrentPosition() - baseParallelRightTicks;
@@ -348,8 +381,6 @@ public abstract class Auto extends LinearOpMode {
             positionTracker.updateLocationAndPose(telemetry, currentAngle(), "spline");
 
             t = Math.abs(distanceTraveled / arclength);
-            //telemetry.addData("target", spline.getAngle(t, offset));
-            telemetry.update();
         }
         if (halt) {
             halt();
@@ -392,7 +423,16 @@ public abstract class Auto extends LinearOpMode {
     public void slideAndMoveByTime(double time, double power, double targetHeading) {
         double current = runtime.time();
 
-        while (runtime.time() - current < time) {
+        while (runtime.time() - current < 0.5) {
+            leftIntake.setPower(1);
+            rightIntake.setPower(1);
+        }
+        blockClaw.setPosition(1);
+        leftIntake.setPower(0);
+        rightIntake.setPower(0);
+
+
+        while (runtime.time() - current < time + 0.5) {
             double target = targetHeading;
             double currentAngle = currentAngle();
 
@@ -406,18 +446,24 @@ public abstract class Auto extends LinearOpMode {
             rightFront.setPower(power - correction);
             rightBack.setPower(power - correction);
 
-            horizontalSlide.setPower(-1);
+            horizontalSlide.setPower(.6);
 
             telemetry.addData("error", error);
             telemetry.update();
         }
         horizontalSlide.setPower(0);
+
+        leftIntake.setPower(0);
+        rightIntake.setPower(0);
+
+        blockClaw.setPosition(0.1);
+
         halt();
     }
 
     public void PIDTurn(int targetHeading, double max) throws InterruptedException {
         double error = getError(currentAngle(), targetHeading, max);
-        while (Math.abs(error) > 2) {
+        while (Math.abs(error) > 3.5) {
             error = getError(currentAngle(), targetHeading, max);
 
             telemetry.addData("error", error);
@@ -518,16 +564,22 @@ public abstract class Auto extends LinearOpMode {
     public void intake() {
         leftIntake.setPower(.65);
         rightIntake.setPower(.65);
+        horizontalSlide.setPower(-.4);
     }
 
     public void stopIntake() {
         leftIntake.setPower(0);
         rightIntake.setPower(0);
+        horizontalSlide.setPower(0);
     }
 
     public void gripPlatform() {
         leftPlatformLatcher.setPosition(1);
         rightPlatformLatcher.setPosition(1);
+
+        //test
+        rightPlatformLatcher.setPosition(1);
+        leftPlatformLatcher.setPosition(1);
     }
 
     public void releasePlatform() {
@@ -536,7 +588,11 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void bringAlignerDown() {
-        blockAligner.setPosition(.6);
+        blockAligner.setPosition(.625);
+    }
+
+    public void grip() {
+        autoBlockGrabber.setPosition(1);
     }
 
     public void gripBlock() throws InterruptedException {

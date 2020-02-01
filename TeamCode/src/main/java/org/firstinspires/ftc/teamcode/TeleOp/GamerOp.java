@@ -113,11 +113,17 @@ public class GamerOp extends OpMode {
         blockAligner = hardwareMap.servo.get("blockAligner");
         capstoneDeployer = hardwareMap.servo.get("capstoneDeployer");
 
-        blockClaw.setPosition(.26);
-
+        blockClaw.setPosition(.1);
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(0);
-        autoBlockGrabber.setPosition(0);
+        autoBlockGrabber.setPosition(1);
+        blockAligner.setPosition(.2);
+
+        //test
+        blockClaw.setPosition(.1);
+        leftPlatformLatcher.setPosition(0);
+        rightPlatformLatcher.setPosition(0);
+        autoBlockGrabber.setPosition(1);
         blockAligner.setPosition(.2);
     }
 
@@ -146,6 +152,7 @@ public class GamerOp extends OpMode {
         gripPlatform();
         autoGripBlock();
         deployCapstone();
+        useEncoders();
 
         bringDownLiftAutomated();
 
@@ -165,30 +172,27 @@ public class GamerOp extends OpMode {
         }
 
 
-        /*telemetry.addData("X: ", positionTracker.getCurrentX());
-        telemetry.addData("Y: ", positionTracker.getCurrentY());
-        telemetry.addData("Current Angle: ", positionTracker.getCurrentAngle());
         telemetry.addData("parallel left ticks", parallelLeftTicks);
         telemetry.addData("parallel right ticks", parallelRightTicks);
         telemetry.addData("perpendicular ticks", perpendicularTicks);
-        telemetry.addData("Distance traveled", (parallelLeftTicks + parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS/2);*/
+        telemetry.addData("Distance traveled", (parallelLeftTicks + parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS/2);
         telemetry.update();
     }
 
     public void driveBot() {
-        if (gamepad1.a && !precisionChanged) {
+        if ((gamepad1.a && !precisionChanged && !useOneGamepad) || (useOneGamepad && gamepad1.y)) {
             precision = !precision;
             precisionChanged = true;
         }
-        else if (!gamepad1.a) {
+        else if ((!useOneGamepad && !gamepad1.a) || (useOneGamepad && !gamepad1.y)) {
             precisionChanged = false;
         }
 
-        if (gamepad1.x && !directionChanged) {
+        if (gamepad1.x && !directionChanged && !useOneGamepad) {
             direction = !direction;
             directionChanged = true;
         }
-        else if (!gamepad1.x) {
+        else if (!gamepad1.x && !useOneGamepad) {
             directionChanged = false;
         }
 
@@ -261,21 +265,48 @@ public class GamerOp extends OpMode {
     }
 
     public void moveSlides() {
-        if(lowerVerticalLimit.getValue() < 1 || gamepad2.left_stick_y < 0) {
+        //vertical slide
+        if((lowerVerticalLimit.getValue() < 1 || gamepad2.left_stick_y < 0 && !useOneGamepad)) {
             verticalSlide.setPower(-gamepad2.left_stick_y);
         }
         else {
-            verticalSlide.setPower(0);
+            if (!useOneGamepad)
+                verticalSlide.setPower(0);
         }
-        if (lowerVerticalLimit.getValue() == 0 && gamepad2.left_stick_y == 0) {
+
+        if (useOneGamepad && gamepad1.dpad_up) {
+            verticalSlide.setPower(1);
+        }
+        else if (lowerVerticalLimit.getValue() < 1 && useOneGamepad && gamepad1.dpad_down) {
+            verticalSlide.setPower(-1);
+        }
+        else {
+            if (useOneGamepad) {
+                verticalSlide.setPower(0);
+            }
+        }
+
+        if (((gamepad2.left_stick_y == 0 && !useOneGamepad) || (useOneGamepad && !gamepad1.dpad_up && !gamepad1.dpad_down)) && lowerVerticalLimit.getValue() < 1) {
             verticalSlide.setPower(.12);
         }
 
-        if (horizontalLimit.getValue() < 1 || gamepad2.right_stick_y < 0) {
+        //horizontal slide
+        /*if (horizontalLimit.getValue() < 1 || gamepad2.right_stick_y < 0) {
+            horizontalSlide.setPower(Range.clip(gamepad2.right_stick_y, -.85, .85));
+        }*/
+        if (!useOneGamepad) {
             horizontalSlide.setPower(Range.clip(gamepad2.right_stick_y, -.85, .85));
         }
         else {
-            horizontalSlide.setPower(0);
+            if (gamepad1.dpad_left) {
+                horizontalSlide.setPower(-.85);
+            }
+            else if (gamepad1.dpad_right) {
+                horizontalSlide.setPower(.85);
+            }
+            else {
+                horizontalSlide.setPower(0);
+            }
         }
 
         /*telemetry.addData("slide power", verticalSlide.getPower());
@@ -286,11 +317,11 @@ public class GamerOp extends OpMode {
 
     public void gripBlock() {
         if ((gamepad2.b || (useOneGamepad && gamepad1.b)) && !gamepad2.start && !positionChanged) {
-            blockClaw.setPosition(closed ? 1 : 0.26);
+            blockClaw.setPosition(closed ? 1 : 0.1);
             closed = !closed;
             positionChanged = true;
         }
-        else if (!gamepad2.b) {
+        else if ((!useOneGamepad && !gamepad2.b) || (useOneGamepad && !gamepad1.b)) {
             positionChanged = false;
         }
     }
@@ -307,28 +338,28 @@ public class GamerOp extends OpMode {
     }
 
     public void autoGripBlock() {
-        if (gamepad1.dpad_up) {
-            autoBlockGrabber.setPosition(0); // up
-        }
-        else if (gamepad1.dpad_down) {
-            autoBlockGrabber.setPosition(1); // down
-        }
-        if (gamepad1.dpad_left) {
-            blockAligner.setPosition(1); // down
-        }
-        else if (gamepad1.dpad_right) {
-            blockAligner.setPosition(0.2); // up
+        if (!useOneGamepad) {
+            if (gamepad1.dpad_right) {
+                autoBlockGrabber.setPosition(0); // up
+            } else if (gamepad1.dpad_left) {
+                autoBlockGrabber.setPosition(1); // down
+            }
+            if (gamepad1.dpad_down) {
+                blockAligner.setPosition(1); // down
+            } else if (gamepad1.dpad_up) {
+                blockAligner.setPosition(0.2); // up
+            }
         }
     }
 
     public void deployCapstone() {
-        if (gamepad2.a && !gamepad2.start && !deployerPositionChanged) {
+        if ((gamepad2.a && !gamepad2.start) || (useOneGamepad && gamepad1.a && !gamepad1.start) && !deployerPositionChanged) {
             time = runtime.time();
             capstoneDeployer.setPosition(deployerClosed ? 1 : 0);
             deployerClosed = !deployerClosed;
             deployerPositionChanged = true;
         }
-        else if (!gamepad2.a) {
+        else if ((!useOneGamepad && !gamepad2.a) || (useOneGamepad && !gamepad1.a)) {
             deployerPositionChanged = false;
         }
         if (runtime.time() - time > 1.5) {
@@ -338,7 +369,7 @@ public class GamerOp extends OpMode {
 
     public void bringDownLiftAutomated() {
         if (gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.dpad_right || gamepad2.dpad_left) {
-            blockClaw.setPosition(.26);
+            blockClaw.setPosition(.10);
             if (horizontalLimit.getValue() < 1) {
                 horizontalSlide.setPower(.85);
             }
