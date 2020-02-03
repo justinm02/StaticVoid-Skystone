@@ -304,13 +304,14 @@ public abstract class Auto extends LinearOpMode {
         int ticks = (int)(inches * C);
 
         while (motorsBusy(ticks, currentPosition)) {
+            heartbeat();
             correction(power, targetHeading, movementType, false, 1);
         }
 
         halt();
     }
 
-    public void strafeByWheelEncoders(double targetHeading, double inches, double power, String movementType) {
+    public void strafeByWheelEncoders(double targetHeading, double inches, double power, String movementType) throws InterruptedException {
         resetMotors();
 
         double currentPosition = leftBack.getCurrentPosition();
@@ -318,6 +319,7 @@ public abstract class Auto extends LinearOpMode {
         int ticks = (int)(inches * C * STRAFE_COEFFICIENT);
 
         while (motorsBusy(ticks, currentPosition)) {
+            heartbeat();
             correction(power, targetHeading, movementType, false, 1);
         }
 
@@ -420,10 +422,11 @@ public abstract class Auto extends LinearOpMode {
         halt();
     }
 
-    public void slideAndMoveByTime(double time, double power, double targetHeading) {
+    public void slideAndMoveByTime(double time, double power, double targetHeading) throws InterruptedException {
         double current = runtime.time();
 
         while (runtime.time() - current < 0.5) {
+            heartbeat();
             leftIntake.setPower(1);
             rightIntake.setPower(1);
         }
@@ -433,6 +436,7 @@ public abstract class Auto extends LinearOpMode {
 
 
         while (runtime.time() - current < time + 0.5) {
+            heartbeat();
             double target = targetHeading;
             double currentAngle = currentAngle();
 

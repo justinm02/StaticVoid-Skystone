@@ -63,7 +63,7 @@ public class RedSkystone extends Auto {
 
         grabBlock();
 
-        move(0, 2.5, 90, .5, .35, .35, "strafe", true);
+        move(0, 2.5, 91, .5, .35, .35, "strafe", true);
 
         splineMove(xSkystone, ySkystone, -.8, -.35, -.6, 0, false);
         splineMove(xPlatform, yPlatform, -.6, -.6, -.35, 0, true);
@@ -107,7 +107,7 @@ public class RedSkystone extends Auto {
     }
 
     public void goMiddle() throws InterruptedException {
-        move(0, 25.5, -88, .7, .4, 0, "strafe", true);
+        move(0, 25.5, -84, .7, .4, 0, "strafe", true);
         xSkystone = new double[]{0, -5, -8, -26};
         ySkystone = new double[]{0, 0, 2, 2};
 
@@ -140,10 +140,10 @@ public class RedSkystone extends Auto {
         releaseBlock();
 
         //move(0, 58, -25, .65, .5, .5, "strafe", true);
-        move(0, 41, 0, .65, .5, .5, "straight", true);
+        move(0, 41.5, 0, .65, .5, .5, "straight", true);
 
 //        move(0, 2, -87, .3, .3, 0, "strafe", true);
-        move(0, 7, -87, .3, .3, 0, "strafe", true);
+        move(0, 9, -87, .3, .3, 0, "strafe", true);
 
         grabBlock();
         pause(.25);
@@ -167,7 +167,7 @@ public class RedSkystone extends Auto {
     }
 
     public void goRight() throws InterruptedException {
-        move(0, 26, -99, .6, .4, 0, "strafe",true);
+        move(0, 26, -97, .6, .4, 0, "strafe",true);
 //        xSkystone = new double[]{0, -5, 0, -25};
 //        ySkystone = new double[]{0, 2, 2, 2};
 
@@ -182,7 +182,7 @@ public class RedSkystone extends Auto {
 
         grabBlock();
 
-        move(0, 4, 90, .3, .3, .3, "strafe", true);
+        move(0, 4, 89, .3, .3, .3, "strafe", true);
         move(0, 44, 180, .8, .35, .35, "straight", false);
 
         //splineMove(xSkystone, ySkystone, -.6, -.25, -.35, 0, false);
@@ -199,7 +199,7 @@ public class RedSkystone extends Auto {
         releaseBlock();
         bringAlignerDown();
 
-        move(0, 38, 0, .6, .6, .35, "straight", true);
+        move(0, 39.5, 0, .6, .6, .35, "straight", true);
         pause(.25);
 
         move(0, 5, -90, .5, .5, .35, "strafe", true);

@@ -58,15 +58,16 @@ public class BlueSkystone extends Auto {
 
         move(0, 28, -90, .6, .35, 0, "strafe", true);
         grabBlock();
+        move(0, 1, 90, .5, .4, .3, "strafe", true);
 
         splineMove(xSkystone, ySkystone, .65, .35, .35, 0, false);
         splineMove(xPlatform, yPlatform, .35, .35, .2, 0, true);
 
-        move(0, 5, -90, .5, .5, .4, "strafe", true);
+        move(0, 3, -90, .5, .5, .4, "strafe", true);
 
         placeStone();
 
-        move(0, 2.5, 90, .5, .5, 0, "strafe", true);
+        move(0, 1.5, 90, .5, .5, 0, "strafe", true);
         grip();
 
         splineMove(xCrossBridge, yCrossBridge, -.8, -.35, -.65, 0, false);
@@ -81,7 +82,7 @@ public class BlueSkystone extends Auto {
         grabBlock();
         pause(.25);
 
-        move(0, 1, 90, .5, .5, .5, "strafe", true);
+        move(0, 2, 90, .5, .5, .5, "strafe", true);
 
         splineMove(xSkystone2, ySkystone2, .75, .35, .6, 0, false);
         splineMove(xPlatform, yPlatform, .6, .6, .6, 0, false);
@@ -115,9 +116,9 @@ public class BlueSkystone extends Auto {
         movePlatformY = new double[]{0, 0, 14};
 
 
-        move(0, 27, -77, .8, .4, .3, "strafe", true);
+        move(0, 27, -79, .8, .4, .3, "strafe", true);
         grabBlock();
-        move(0, 1, 90, .5, .4, .3, "strafe", true);
+        move(0, 2, 90, .5, .4, .3, "strafe", true);
 
         splineMove(xSkystone, ySkystone, .6, .3, .45, 0, false);
         splineMove(xPlatform, yPlatform, .45, .45, .3, 0, true);
@@ -173,7 +174,7 @@ public class BlueSkystone extends Auto {
         movePlatformX = new double[]{0, 22, 22};
         movePlatformY = new double[]{0, 0, 12};
 
-        move(0, 29, -100, .6, .3, 0, "strafe", true);
+        move(0, 29, -99, .6, .3, 0, "strafe", true);
         grabBlock();
 
         splineMove(xSkystone, ySkystone, .8, .4, .6, 0, false);
@@ -181,31 +182,31 @@ public class BlueSkystone extends Auto {
 
         pause(.25);
 
-        move(0, 3, -90, .5, .5, .5, "strafe", true);
+        move(0, 1, -90, .5, .5, .5, "strafe", true);
 
         placeStone();
 
-        move(0, 1, 90, .3, .3, 0, "strafe", true);
+        move(0, 5.5, 90, .3, .3, 0, "strafe", true);
         grip();
 
-        splineMove(xCrossBridge, yCrossBridge, -.8, -.4, -.65, 0, true);
+        //splineMove(xCrossBridge, yCrossBridge, -.8, -.4, -.6, 0, true);
 
-        move(0, 44, 180, .65, .65, .35, "straight", true);
+        move(0, 73, 180, .85, .4, .3, "straight", true);
         PIDTurn(180, 1);
-        move(180, 16.75, -90, .8, .6, .6, "strafe", true);
+        move(180, 16, -90, .6, .6, .6, "strafe", true);
         intake();
         moveByTime(1, .5, 180);
         stopIntake();
 
-        move(180, 14, 90, .6, .6, .6, "strafe", true);
-        move(180, 97, -5, 1, .8, .8, "straight", true);
+        move(180, 13.5, 90, .6, .6, .6, "strafe", true);
+        move(180, 95, 0, .8, .6, .8, "straight", true);
 
         getPlatform("right");
 
-        move(180, 6, 90, 0.95, 0.7, 0.75, "strafe", true);
-        move(180, 6, 180, 0.95, 0.7, 0.75, "straight", true);
-        move(180, 15, -90, 0.95, 0.7, 0.75, "strafe", true);
-        move(180, 16, 180, 0.95, 0.7, 0.75, "straight", true);
+        move(180, 4, 90, 0.85, 0.7, 0.75, "strafe", true);
+        move(180, 2, 180, 0.85, 0.7, 0.77, "straight", true);
+        move(180, 18, -90, 0.85, 0.7, 0.75, "strafe", true);
+        move(180, 9, 180, 0.9, 0.7, 0.75, "straight", true);
 
         /*moveByTime(.65, -.3, 0);
 
