@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.util.Range;
 
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, verticalSlide, parallelRightEncoderTracker;
+    private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, leftVerticalSlide, rightVerticalSlide;
     private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher, autoBlockGrabber, blockAligner, capstoneDeployer;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
@@ -38,9 +38,6 @@ public class GamerOp extends OpMode {
         setUpSlides();
         setUpServos();
 
-        parallelRightEncoderTracker = (DcMotorEx) hardwareMap.dcMotor.get("parallelRightEncoderTracker");
-        parallelRightEncoderTracker.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
         precision = false;
         direction = false;
         useOneGamepad = false;
@@ -53,7 +50,7 @@ public class GamerOp extends OpMode {
         telemetry.addData("Status", "Initialized");
 
         baseParallelLeftPosition = leftIntake.getCurrentPosition();
-        baseParallelRightPosition = parallelRightEncoderTracker.getCurrentPosition();
+        baseParallelRightPosition = rightVerticalSlide.getCurrentPosition();
         basePerpendicularPosition = rightIntake.getCurrentPosition();
     }
 
@@ -93,10 +90,15 @@ public class GamerOp extends OpMode {
     }
 
     public void setUpSlides() {
-        verticalSlide = (DcMotorEx) hardwareMap.dcMotor.get("verticalSlide");
-        verticalSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        verticalSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftVerticalSlide = (DcMotorEx) hardwareMap.dcMotor.get("leftVerticalSlide");
+        leftVerticalSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftVerticalSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //verticalSlide.setDirection(DcMotor.Direction.REVERSE);
+
+        rightVerticalSlide = (DcMotorEx) hardwareMap.dcMotor.get("rightVerticalSlide");
+        rightVerticalSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightVerticalSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightVerticalSlide.setDirection(DcMotor.Direction.REVERSE);
 
         horizontalSlide = hardwareMap.get(CRServo.class, "horizontalSlide");
         //horizontalSlide.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -161,7 +163,7 @@ public class GamerOp extends OpMode {
 
     public void useEncoders() {
         double parallelLeftTicks = (leftIntake.getCurrentPosition() - baseParallelLeftPosition);
-        double parallelRightTicks = parallelRightEncoderTracker.getCurrentPosition() - baseParallelRightPosition;
+        double parallelRightTicks = rightVerticalSlide.getCurrentPosition() - baseParallelRightPosition;
         double perpendicularTicks = rightIntake.getCurrentPosition() - basePerpendicularPosition;
 
         if(Math.abs(gamepad1.left_stick_x) < Math.cos(Math.toRadians(5)) || Math.sqrt(Math.pow(gamepad1.left_stick_x,2) + Math.pow(gamepad1.left_stick_y,2)) < .1 ) {
@@ -267,27 +269,34 @@ public class GamerOp extends OpMode {
     public void moveSlides() {
         //vertical slide
         if((lowerVerticalLimit.getValue() < 1 || gamepad2.left_stick_y < 0 && !useOneGamepad)) {
-            verticalSlide.setPower(-gamepad2.left_stick_y);
+            rightVerticalSlide.setPower(-gamepad2.left_stick_y);
+            leftVerticalSlide.setPower(-gamepad2.left_stick_y);
         }
         else {
-            if (!useOneGamepad)
-                verticalSlide.setPower(0);
+            if (!useOneGamepad) {
+                rightVerticalSlide.setPower(0);
+                leftVerticalSlide.setPower(0);
+            }
         }
 
         if (useOneGamepad && gamepad1.dpad_up) {
-            verticalSlide.setPower(1);
+            rightVerticalSlide.setPower(1);
+            leftVerticalSlide.setPower(1);
         }
         else if (lowerVerticalLimit.getValue() < 1 && useOneGamepad && gamepad1.dpad_down) {
-            verticalSlide.setPower(-1);
+            rightVerticalSlide.setPower(-1);
+            leftVerticalSlide.setPower(-1);
         }
         else {
             if (useOneGamepad) {
-                verticalSlide.setPower(0);
+                rightVerticalSlide.setPower(0);
+                leftVerticalSlide.setPower(0);
             }
         }
 
         if (((gamepad2.left_stick_y == 0 && !useOneGamepad) || (useOneGamepad && !gamepad1.dpad_up && !gamepad1.dpad_down)) && lowerVerticalLimit.getValue() < 1) {
-            verticalSlide.setPower(.12);
+            rightVerticalSlide.setPower(.12);
+            leftVerticalSlide.setPower(.12);
         }
 
         //horizontal slide
@@ -377,10 +386,12 @@ public class GamerOp extends OpMode {
                 horizontalSlide.setPower(0);
             }
             if (lowerVerticalLimit.getValue() < 1) {
-                verticalSlide.setPower(-1);
+                rightVerticalSlide.setPower(-1);
+                leftVerticalSlide.setPower(-1);
             }
             else {
-                verticalSlide.setPower(0);
+                rightVerticalSlide.setPower(0);
+                leftVerticalSlide.setPower(0);
             }
         }
     }
