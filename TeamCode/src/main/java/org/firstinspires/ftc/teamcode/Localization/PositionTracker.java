@@ -5,6 +5,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class PositionTracker {
 
     private double currentX, currentY, currentAngle; //angle ccw
+    private double initX, initY, initAngle;
     public double leftEncoderTicks, rightEncoderTicks, strafeEncoderTicks;
     public double lastLeftEncoderTicks, lastRightEncoderTicks, lastStrafeEncoderTicks;
     private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05;
@@ -12,6 +13,9 @@ public class PositionTracker {
     private final double width = 11.5;
 
     public PositionTracker(double initX, double initY, double initAngle){
+        initX = this.initX;
+        initY = this.initY;
+        initAngle = this.initAngle;
         currentX = initX;
         currentY = initY;
         currentAngle = initAngle;
@@ -21,6 +25,18 @@ public class PositionTracker {
         lastLeftEncoderTicks = 0;
         lastRightEncoderTicks = 0;
         lastStrafeEncoderTicks = 0;
+    }
+
+    public double getInitX() {
+        return initX;
+    }
+
+    public double getInitY() {
+        return initY;
+    }
+
+    public double getInitAngle() {
+        return initAngle;
     }
 
     public double getCurrentX(){
@@ -45,7 +61,7 @@ public class PositionTracker {
         strafeEncoderTicks = strafe;
     }
 
-    public void updateLocationAndPose(Telemetry telemetry, double gyroAngle, String type){
+    public void updateLocationAndPose(Telemetry telemetry, String type){
         double sRight = -1*(rightEncoderTicks - lastRightEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
         double sLeft = (leftEncoderTicks - lastLeftEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
         double sAvg = (sLeft+sRight)/2;

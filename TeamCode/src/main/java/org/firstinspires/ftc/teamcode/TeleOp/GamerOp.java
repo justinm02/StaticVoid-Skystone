@@ -172,10 +172,10 @@ public class GamerOp extends OpMode {
         positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
 
         if(Math.abs(gamepad1.left_stick_x) < Math.cos(Math.toRadians(5)) || Math.sqrt(Math.pow(gamepad1.left_stick_x,2) + Math.pow(gamepad1.left_stick_y,2)) < .1 ) {
-            positionTracker.updateLocationAndPose(telemetry,0, "");
+            positionTracker.updateLocationAndPose(telemetry, "");
         }
         else {
-            positionTracker.updateLocationAndPose(telemetry,0, "");
+            positionTracker.updateLocationAndPose(telemetry, "");
         }
 
         telemetry.addData("parallel left ticks", parallelLeftTicks);
