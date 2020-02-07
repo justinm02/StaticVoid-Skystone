@@ -33,12 +33,13 @@ public abstract class Auto extends LinearOpMode {
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
     private DcMotorEx[] motors = {leftFront, leftBack, rightFront, rightBack};
-    ///private PID forwardHeadingPID = new PID(0.04, 0, 0.0024);
+    //private PID forwardHeadingPID = new PID(0.04, 0, 0.0024);
     private PID forwardHeadingPID = new PID(0, 0, 0);
     private Servo leftPlatformLatcher, rightPlatformLatcher;
-    //private PID strafePID = new PID(0.026, 0, 0.0038);
-    private PID strafePID = new PID(0, 0, 0);
-    private PID xPositionPID = new PID(0.05, 0, 0);
+    private PID strafePID = new PID(0.04, 0, 0.0038);
+    //private PID strafePID = new PID(0, 0, 0);
+    private PID xPositionPID = new PID(0.09, 0, 0);
+    //private PID xPositionPID = new PID(0, 0, 0);
     private PID yPositionPID = new PID(0, 0, 0);
     public int baseParallelLeftPosition, basePerpendicularPosition, baseParallelRightPosition;
     private double xPos = 0;
@@ -249,15 +250,15 @@ public abstract class Auto extends LinearOpMode {
             //when axis between -179 and 179 degrees is crossed, degrees must be converted from 0 - 360 degrees. 179-(-179) = 358. 179 - 181 = -2. Big difference
             headingError = getError(currentAngle(), targetHeading);
 
-            double errorX = targetX - (-(positionTracker.getCurrentX() - baseXPosition));
-            double errorY = targetY - (-(positionTracker.getCurrentY() - baseYPosition));
+            double errorX = targetX - ((positionTracker.getCurrentX() - baseXPosition));
+            double errorY = targetY - ((positionTracker.getCurrentY() - baseYPosition));
 
 //            telemetry.addData("error", error);
 //            telemetry.update();
 
             headingCorrection = headingPID.getCorrection(headingError, runtime);
-            xPositionCorrection = xPositionPID.getCorrection(-errorX, runtime);
-            yPositionCorrection = yPositionPID.getCorrection(-errorY, runtime);
+            xPositionCorrection = xPositionPID.getCorrection(errorX, runtime);
+            yPositionCorrection = yPositionPID.getCorrection(errorY, runtime);
 
             double proportionTravelled = dTravelled / magnitude;
 

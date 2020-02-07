@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.Localization.PositionTracker;
+
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, leftVerticalSlide, rightVerticalSlide;
@@ -29,6 +31,7 @@ public class GamerOp extends OpMode {
     private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05; //circumference of parallel deadwheel
     private final double DEADWHEEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/deadWheelTicks;
     private double time = -999;
+    private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
 
     @Override
     public void init() {
@@ -166,18 +169,21 @@ public class GamerOp extends OpMode {
         double parallelRightTicks = rightVerticalSlide.getCurrentPosition() - baseParallelRightPosition;
         double perpendicularTicks = rightIntake.getCurrentPosition() - basePerpendicularPosition;
 
+        positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
+
         if(Math.abs(gamepad1.left_stick_x) < Math.cos(Math.toRadians(5)) || Math.sqrt(Math.pow(gamepad1.left_stick_x,2) + Math.pow(gamepad1.left_stick_y,2)) < .1 ) {
-            //positionTracker.updateLocationAndPose("", telemetry);
+            positionTracker.updateLocationAndPose(telemetry,0, "");
         }
         else {
-            //positionTracker.updateLocationAndPose("strafe", telemetry);
+            positionTracker.updateLocationAndPose(telemetry,0, "");
         }
-
 
         telemetry.addData("parallel left ticks", parallelLeftTicks);
         telemetry.addData("parallel right ticks", parallelRightTicks);
         telemetry.addData("perpendicular ticks", perpendicularTicks);
-        telemetry.addData("Distance traveled", (parallelLeftTicks + parallelLeftTicks)*DEADWHEEL_INCHES_OVER_TICKS/2);
+        telemetry.addData("Distance traveled", (parallelLeftTicks + parallelRightTicks)*DEADWHEEL_INCHES_OVER_TICKS/2);
+        telemetry.addData("X Position", positionTracker.getCurrentX());
+        telemetry.addData("Y Position", positionTracker.getCurrentY());
         telemetry.update();
     }
 

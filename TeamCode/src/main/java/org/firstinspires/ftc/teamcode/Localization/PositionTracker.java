@@ -46,7 +46,7 @@ public class PositionTracker {
     }
 
     public void updateLocationAndPose(Telemetry telemetry, double gyroAngle, String type){
-        double sRight = (rightEncoderTicks - lastRightEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
+        double sRight = -1*(rightEncoderTicks - lastRightEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
         double sLeft = (leftEncoderTicks - lastLeftEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
         double sAvg = (sLeft+sRight)/2;
         double deltaAngle = (sRight-sLeft)/(width);
@@ -68,13 +68,14 @@ public class PositionTracker {
         currentY += deltaY;
         currentAngle += deltaAngle;
 
-        /*telemetry.addData("sAvg", sAvg);
-        telemetry.addData("sStrafe", sStrafe);
+        telemetry.addData("X sAvg converted",  sAvg * Math.cos(Math.toRadians(currentAngle)));
+        telemetry.addData("sStrafe converted", sStrafe * Math.sin(Math.toRadians(currentAngle)));
+        telemetry.addData("deltaX", deltaX);
         telemetry.addData("currentAngle", Math.toDegrees(currentAngle));
         telemetry.addData("sRight", sRight);
         telemetry.addData("sLeft", sLeft);
         telemetry.addData("currentX", currentX);
         telemetry.addData("currentY", currentY);
-        telemetry.update();*/
+        telemetry.update();
     }
 }
