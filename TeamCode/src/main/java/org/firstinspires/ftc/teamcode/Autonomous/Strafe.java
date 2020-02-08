@@ -13,7 +13,7 @@ public class Strafe extends Auto {
 
         try {
 
-            newMove(new Waypoint(0,0), new Waypoint(0, 120), 60, .3, .7, .3);
+            newMove(new Waypoint(0,0), new Waypoint(0, 120), 0, .3, .5, .3);
         } catch (InterruptedException e) {
         }
     }

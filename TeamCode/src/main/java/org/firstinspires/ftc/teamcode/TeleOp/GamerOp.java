@@ -300,17 +300,14 @@ public class GamerOp extends OpMode {
             }
         }
 
-        if (((gamepad2.left_stick_y == 0 && !useOneGamepad) || (useOneGamepad && !gamepad1.dpad_up && !gamepad1.dpad_down)) && lowerVerticalLimit.getValue() < 1) {
-            rightVerticalSlide.setPower(.12);
-            leftVerticalSlide.setPower(.12);
-        }
+//        if (((gamepad2.left_stick_y == 0 && !useOneGamepad) || (useOneGamepad && !gamepad1.dpad_up && !gamepad1.dpad_down)) && lowerVerticalLimit.getValue() < 1) {
+//            rightVerticalSlide.setPower(0);
+//            leftVerticalSlide.setPower(0);
+//        }
 
         //horizontal slide
-        /*if (horizontalLimit.getValue() < 1 || gamepad2.right_stick_y < 0) {
-            horizontalSlide.setPower(Range.clip(gamepad2.right_stick_y, -.85, .85));
-        }*/
         if (!useOneGamepad) {
-            horizontalSlide.setPower(Range.clip(gamepad2.right_stick_y, -.85, .85));
+            horizontalSlide.setPower(Range.clip(-gamepad2.right_stick_y, -.85, .85));
         }
         else {
             if (gamepad1.dpad_left) {
@@ -346,7 +343,11 @@ public class GamerOp extends OpMode {
             leftPlatformLatcher.setPosition(1);
             rightPlatformLatcher.setPosition(1);
         }
-        else if (gamepad1.left_trigger > 0) {
+        /*else if (gamepad1.left_trigger > 0) {
+            leftPlatformLatcher.setPosition(0);
+            rightPlatformLatcher.setPosition(0);
+        }*/
+        else {
             leftPlatformLatcher.setPosition(0);
             rightPlatformLatcher.setPosition(0);
         }

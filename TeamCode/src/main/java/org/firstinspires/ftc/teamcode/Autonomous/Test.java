@@ -70,10 +70,6 @@ public class Test extends LinearOpMode {
 
             telemetry.update();
             sleep(100);
-            //call movement functions
-            //            strafe(0.4, 200);
-            //            moveDistance(0.4, 700);
-
         }
     }
 

@@ -36,9 +36,9 @@ public abstract class Auto extends LinearOpMode {
     //private PID forwardHeadingPID = new PID(0.04, 0, 0.0024);
     private PID forwardHeadingPID = new PID(0, 0, 0);
     private Servo leftPlatformLatcher, rightPlatformLatcher;
-    private PID strafePID = new PID(0.04, 0, 0.0038);
-    //private PID strafePID = new PID(0, 0, 0);
-    private PID positionPID = new PID(0.1, 0, 0);
+    //private PID strafePID = new PID(0.05, 0, 0.0038);
+    private PID strafePID = new PID(0, 0, 0);
+    private PID positionPID = new PID(.001, 0, 0);
     public int baseParallelLeftPosition, basePerpendicularPosition, baseParallelRightPosition;
     private double xPos = 0;
     private double yPos = 0;
@@ -329,27 +329,33 @@ public abstract class Auto extends LinearOpMode {
     public void newMove(Waypoint start, Waypoint end, double targetHeading, double initPower, double maxPower, double finPower) throws InterruptedException{
         double directionField = Math.atan2(end.getYcoord() - start.getYcoord(), end.getXcoord() - start.getXcoord());
         //double directionRobot = (directionField - positionTracker.getInitAngle() + 180)%360 - 180;
-        double adjDirection = Math.toRadians(directionField - targetHeading);
+        double adjDirection = Math.toDegrees(directionField) - targetHeading;
         double baseXCoord = positionTracker.getCurrentX();
         double baseYCoord = positionTracker.getCurrentY();
+
+        double baseParallelLeftTicks = leftIntake.getCurrentPosition();
+        double baseParallelRightTicks = rightVerticalSlide.getCurrentPosition();
+        double basePerpendicularTicks = rightIntake.getCurrentPosition();
+
         PID headingPID;
 
         if (Math.abs(adjDirection) < 15 || Math.abs(adjDirection) > 165) {
-            headingPID = strafePID;
-            motionProfiler = new MotionProfiler(.125);
-        } else {
             headingPID = forwardHeadingPID;
             motionProfiler = new MotionProfiler(.125);
+        } else {
+            headingPID = strafePID;
+            motionProfiler = new MotionProfiler(.125);
         }
+
+        double idealDistance =  Math.sqrt(Math.pow(end.getXcoord() - baseXCoord, 2) + Math.pow(end.getYcoord() - baseYCoord, 2));
 
         while(Math.abs(end.getXcoord() - positionTracker.getCurrentX()) > epsilonX || Math.abs(end.getYcoord() - positionTracker.getCurrentY()) > epsilonY || Math.abs(targetHeading - positionTracker.getCurrentAngle()) > epsilonAngle){
             heartbeat();
 
-            positionTracker.updateTicks(leftIntake.getCurrentPosition(), rightVerticalSlide.getCurrentPosition(), rightIntake.getCurrentPosition());
+            positionTracker.updateTicks(leftIntake.getCurrentPosition() - baseParallelLeftTicks, rightVerticalSlide.getCurrentPosition() - baseParallelRightTicks, rightIntake.getCurrentPosition() - basePerpendicularTicks);
             positionTracker.updateLocationAndPose(telemetry, "move");
 
             double distanceTravelled = Math.sqrt(Math.pow(positionTracker.getCurrentX() - baseXCoord, 2) + Math.pow(positionTracker.getCurrentY() - baseYCoord, 2));
-            double idealDistance =  Math.sqrt(Math.pow(end.getXcoord() - baseXCoord, 2) + Math.pow(end.getYcoord() - baseYCoord, 2));
             double propTravelled = Range.clip(distanceTravelled/idealDistance, 0, 1);
 
             double targetX = start.getXcoord() + propTravelled*(end.getXcoord() - start.getXcoord());
@@ -364,10 +370,10 @@ public abstract class Auto extends LinearOpMode {
             double posCorrection = positionPID.getCorrection(posErrorMag, runtime);
             double headingCorrection = headingPID.getCorrection(errorHeading, runtime);
 
-            double leftFrontPower = Math.sin(adjDirection + 3*Math.PI/4) + posCorrection*Math.sin(posErrorAngle - targetHeading + 3*Math.PI/4) -  headingCorrection;
-            double leftBackPower = Math.sin(adjDirection + Math.PI/4) + posCorrection*Math.sin(posErrorAngle - targetHeading + Math.PI/4) - headingCorrection;
-            double rightFrontPower = Math.sin(adjDirection + Math.PI/4) + posCorrection*Math.sin(posErrorAngle - targetHeading + Math.PI/4) + headingCorrection;
-            double rightBackPower = Math.sin(adjDirection + 3*Math.PI/4) + posCorrection*Math.sin(posErrorAngle - targetHeading + 3*Math.PI/4) + headingCorrection;
+            double leftFrontPower = Math.sin(Math.toRadians(adjDirection) + 3*Math.PI/4) + posCorrection*Math.sin(posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4) - headingCorrection;
+            double leftBackPower = Math.sin(Math.toRadians(adjDirection) + Math.PI/4) + posCorrection*Math.sin(posErrorAngle - Math.toRadians(targetHeading) + Math.PI/4) - headingCorrection;
+            double rightFrontPower = Math.sin(Math.toRadians(adjDirection) + Math.PI/4) + posCorrection*Math.sin(posErrorAngle - Math.toRadians(targetHeading) + Math.PI/4) + headingCorrection;
+            double rightBackPower = Math.sin(Math.toRadians(adjDirection) + 3*Math.PI/4) + posCorrection*Math.sin(posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4) + headingCorrection;
 
             double currentPowerMultiplier = motionProfiler.getProfilePower(propTravelled, maxPower, initPower, finPower);
             double conversion = Math.abs(currentPowerMultiplier / getMaxMagnitude(new double[]{leftFrontPower, leftBackPower, rightFrontPower, rightBackPower}));
@@ -377,12 +383,19 @@ public abstract class Auto extends LinearOpMode {
             rightFront.setPower(conversion*rightFrontPower);
             rightBack.setPower(conversion*rightBackPower);
 
-            int parallelLeftTicks = leftIntake.getCurrentPosition() - baseParallelLeftPosition;
-            int parallelRightTicks = rightVerticalSlide.getCurrentPosition() - baseParallelRightPosition;
-            int perpendicularTicks = rightIntake.getCurrentPosition() - basePerpendicularPosition;
+            telemetry.addData("error X", errorX);
+            telemetry.addData("error Y", errorY);
+//            telemetry.addData("adjacentDirection", adjDirection);
+//            telemetry.addData("targetHeading", targetHeading);
+            telemetry.addData("direction", directionField);
+            telemetry.addData("posErrorAngle", Math.toDegrees(posErrorAngle));
+            telemetry.addData("Sin", Math.sin(posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4));
+            telemetry.addData("position correction", posCorrection*Math.sin(posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4));
+            telemetry.addData("sin value 3pi/4", Math.sin(posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4));
+            telemetry.addData("sin value pi/4", Math.sin(posErrorAngle - Math.toRadians(targetHeading) + Math.PI/4));
+            telemetry.addData("convertedAngle", posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4);
+            telemetry.update();
 
-            positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
-            positionTracker.updateLocationAndPose(telemetry, "move");
         }
     }
 
