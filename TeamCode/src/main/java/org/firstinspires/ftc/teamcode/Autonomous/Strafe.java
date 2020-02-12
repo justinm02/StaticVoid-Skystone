@@ -12,8 +12,8 @@ public class Strafe extends Auto {
         waitForStart();
 
         try {
-
-            newMove(new Waypoint(0,0), new Waypoint(0, 120), 0, .3, .5, .3);
+            bringAlignerDown();
+            newMove(new Waypoint(0,0), new Waypoint(-15, -27), 0, .2, .3, 0, true);
         } catch (InterruptedException e) {
         }
     }

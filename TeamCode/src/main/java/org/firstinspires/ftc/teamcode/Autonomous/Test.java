@@ -34,17 +34,16 @@ public class Test extends LinearOpMode {
     private static int valLeft = -1;
     private static int valRight = -1;
 
-    private static float rectHeight = .6f/8f;
+    private static float rectHeight = .4f/8f;
     private static float rectWidth = 0.5f/8f;
 
     private static float offsetX = 0f/8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
     private static float offsetY = 0f/8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
 
-    private static float[] midPos = {2.5f/8f+offsetX, 5.2f/8f+offsetY};//0 = col, 1 = row
-    private static float[] leftPos = {1.0f/8f+offsetX, 5.2f/8f+offsetY};
-    private static float[] rightPos = {4.0f/8f+offsetX, 5.2f/8f+offsetY};
+    private static float[] midPos = {3.85f/8f+offsetX, 4.65f/8f+offsetY};//0 = col, 1 = row
+    private static float[] leftPos = {1.85f/8f+offsetX, 4.65f/8f+offsetY};
+    private static float[] rightPos = {5.85f/8f+offsetX, 4.65f/8f+offsetY};
     //moves all rectangles right or left by amount. units are in ratio to monitor
-
     private final int rows = 640;
     private final int cols = 480;
 
@@ -57,7 +56,7 @@ public class Test extends LinearOpMode {
         phoneCam = phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
         phoneCam.openCameraDevice();//open camera
         phoneCam.setPipeline(new StageSwitchingPipeline());//different stages
-        phoneCam.startStreaming(rows, cols, OpenCvCameraRotation.SIDEWAYS_RIGHT);   //display on RC
+        phoneCam.startStreaming(rows, cols, OpenCvCameraRotation.UPSIDE_DOWN);   //display on RC
         //width, height
         //width = height in this case, because camera is in portrait mode.
 

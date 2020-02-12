@@ -224,9 +224,9 @@ public class GamerOp extends OpMode {
         leftBack.setPower(precision ? 0.4 * motorPowers[2] : motorPowers[2]);
         rightBack.setPower(precision ? 0.4 * motorPowers[3] : motorPowers[3]);
 
-        telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFront.getPower(), rightFront.getPower());
-        telemetry.addData("joystickAngle", joystickAngle);
-        telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftBack.getPower(), rightBack.getPower());
+//        telemetry.addData("Front Motors", "Left Front (%.2f), Right Front (%.2f)", leftFront.getPower(), rightFront.getPower());
+//        telemetry.addData("joystickAngle", joystickAngle);
+//        telemetry.addData("Rear Motors", "Left Rear (%.2f), Right Rear (%.2f)", leftBack.getPower(), rightBack.getPower());
     }
 
     public double[] convertMotorPowers(double[] motorPowers, double xLinear, double xTurn) {
@@ -234,9 +234,9 @@ public class GamerOp extends OpMode {
 
         double conversion = Math.abs(Math.sqrt((Math.pow(xLinear,2) + Math.pow(xTurn, 2))/*/2*/)/maxPower);
 
-        telemetry.addData("maxPower", maxPower);
-        telemetry.addData("conversion", conversion);
-        telemetry.update();
+//        telemetry.addData("maxPower", maxPower);
+//        telemetry.addData("conversion", conversion);
+//        telemetry.update();
 
         for (int i = 0; i < motorPowers.length; i++) {
             motorPowers[i] *= conversion;
@@ -300,10 +300,10 @@ public class GamerOp extends OpMode {
             }
         }
 
-//        if (((gamepad2.left_stick_y == 0 && !useOneGamepad) || (useOneGamepad && !gamepad1.dpad_up && !gamepad1.dpad_down)) && lowerVerticalLimit.getValue() < 1) {
-//            rightVerticalSlide.setPower(0);
-//            leftVerticalSlide.setPower(0);
-//        }
+        if (((gamepad2.left_stick_y == 0 && !useOneGamepad) || (useOneGamepad && !gamepad1.dpad_up && !gamepad1.dpad_down)) && lowerVerticalLimit.getValue() < 1) {
+            rightVerticalSlide.setPower(.05);
+            leftVerticalSlide.setPower(.05);
+        }
 
         //horizontal slide
         if (!useOneGamepad) {
@@ -387,7 +387,7 @@ public class GamerOp extends OpMode {
         if (gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.dpad_right || gamepad2.dpad_left) {
             blockClaw.setPosition(.10);
             if (horizontalLimit.getValue() < 1) {
-                horizontalSlide.setPower(.85);
+                horizontalSlide.setPower(-.85);
             }
             else {
                 horizontalSlide.setPower(0);

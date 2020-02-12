@@ -62,13 +62,13 @@ public class PositionTracker {
     }
 
     public void updateLocationAndPose(Telemetry telemetry, String type){
-        double sRight = -1*(rightEncoderTicks - lastRightEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
+        double sRight = (rightEncoderTicks - lastRightEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS; //encoder is reversed
         double sLeft = (leftEncoderTicks - lastLeftEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
         double sAvg = (sLeft+sRight)/2;
         double deltaAngle = (sRight-sLeft)/(width);
         double deltaX, deltaY;
 
-        double sStrafe = (strafeEncoderTicks-lastStrafeEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS;
+        double sStrafe = (strafeEncoderTicks-lastStrafeEncoderTicks)*DEADWHEEL_INCHES_OVER_TICKS; //encoder is reversed
 
 
         if(type.equals("spline")){
@@ -84,14 +84,14 @@ public class PositionTracker {
         currentY += deltaY;
         currentAngle += deltaAngle;
 
-        telemetry.addData("X sAvg converted",  sAvg * Math.cos(Math.toRadians(currentAngle)));
-        telemetry.addData("sStrafe converted", sStrafe * Math.sin(Math.toRadians(currentAngle)));
-        telemetry.addData("deltaX", deltaX);
-        telemetry.addData("currentAngle", Math.toDegrees(currentAngle));
-        telemetry.addData("sRight", sRight);
-        telemetry.addData("sLeft", sLeft);
-        telemetry.addData("currentX", currentX);
-        telemetry.addData("currentY", currentY);
+//        telemetry.addData("X sAvg converted",  sAvg * Math.cos(Math.toRadians(currentAngle)));
+//        telemetry.addData("sStrafe converted", sStrafe * Math.sin(Math.toRadians(currentAngle)));
+//        telemetry.addData("deltaX", deltaX);
+//        telemetry.addData("currentAngle", Math.toDegrees(currentAngle));
+//        telemetry.addData("sRight", sRight);
+//        telemetry.addData("sLeft", sLeft);
+//        telemetry.addData("currentX", currentX);
+//        telemetry.addData("currentY", currentY);
         telemetry.update();
     }
 }
