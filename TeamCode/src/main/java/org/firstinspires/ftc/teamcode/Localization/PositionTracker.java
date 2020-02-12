@@ -51,6 +51,10 @@ public class PositionTracker {
         return currentAngle;
     }
 
+    public void resetPosition() {
+
+    }
+
     public void updateTicks(double left, double right, double strafe){
         lastLeftEncoderTicks = leftEncoderTicks;
         lastRightEncoderTicks = rightEncoderTicks;

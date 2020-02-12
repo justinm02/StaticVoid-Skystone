@@ -54,22 +54,33 @@ public class RedSkystone extends Auto {
         ySkystone = new double[]{0, 0, 2, 2};
 
         xPlatform = new double[]{0, -15, -15, -43};
-        yPlatform = new double[]{5, 5, 0, 0};
+        yPlatform = new double[]{5, 5, 1.5, 1.5};
 
-        xCrossBridge = new double[]{-43, -15, -15, 0};
-        yCrossBridge = new double[]{-3, -3, 0, 0};
+        xCrossBridge = new double[]{-35, -15, 0, 34};
+        yCrossBridge = new double[]{-3, -3, 2.5, 2.5};
 
-        xSkystone2 = new double[]{0, -5, -8, -46};
-        ySkystone2 = new double[]{0, 0, 3, 3};
+        xSkystone2 = new double[]{0, 0, 7, 21};
+        ySkystone2 = new double[]{0, 0, -5, -5};
 
         grabBlock();
 
         //move(0, 2.5, 91, .5, .35, .35, "strafe", true);
 
         splineMove(xSkystone, ySkystone, -.8, -.35, -.6, 0, false);
-        splineMove(xPlatform, yPlatform, -.6, -.6, -.4, 0, true);
+        splineMove(xPlatform, yPlatform, -.8, -.8, -.3, 0, true);
 
         placeStone();
+
+        splineMove(xCrossBridge, yCrossBridge, .8, .4, .6, 0, false);
+
+        bringAlignerDown();
+
+        splineMove(xSkystone2, ySkystone2, .6, .6, .3, 0, false);
+
+        moveByTime(0.65, 0.3, 0);
+
+        grabBlock();
+
 //
 //        move(0, 1.5, 90, .5, .5, .3, "strafe", true);
 //        grip();
@@ -107,17 +118,20 @@ public class RedSkystone extends Auto {
 
     public void goMiddle() throws InterruptedException {
         newMove(new Waypoint(0,0), new Waypoint(-7, -27.5), 0, .3, .4, 0, true);
-        xSkystone = new double[]{0, -5, -8, -26};
+        xSkystone = new double[]{0, -5, -8, -22};
         ySkystone = new double[]{0, 0, 2, 2};
 
         xPlatform = new double[]{0, -15, -15, -40};
-        yPlatform = new double[]{5, 5, 0, -0.5};
+        yPlatform = new double[]{5, 5, 1.25, 1.25};
 
-        xCrossBridge = new double[]{-35, -15, 10, 10};
-        yCrossBridge = new double[]{-3, -3, 2, 2};
+        xCrossBridge = new double[]{-35, -15, 10, 34};
+        yCrossBridge = new double[]{-3, -3, 1, 1};
 
-        xSkystone2 = new double[]{0, -5, -8, -44};
-        ySkystone2 = new double[]{0, 0, 2.5, 2.5};
+        xSkystone2 = new double[]{0, 0, 20, 21};
+        ySkystone2 = new double[]{0, 0, -2, -2};
+
+        /*xSkystone2 = new double[]{0, -5, -8, -44};
+        ySkystone2 = new double[]{0, 0, 2.5, 2.5};*/
 
         grabBlock();
         pause(.25);
@@ -125,9 +139,16 @@ public class RedSkystone extends Auto {
         //move(0, 2, 90, .3, .35, 0, "strafe", true);
 
         splineMove(xSkystone, ySkystone, -.8, -.35, -.6, 0, false);
-        splineMove(xPlatform, yPlatform, -.6, -.6, -.4, 0, true);
+        splineMove(xPlatform, yPlatform, -.8, -.8, -.4, 0, true);
 
         placeStone();
+
+        splineMove(xCrossBridge, yCrossBridge, .8, .4, .6, 0, false);
+        bringAlignerDown();
+
+        splineMove(xSkystone2, ySkystone2, .6, .6, .2, 0, true);
+
+        grabBlock();
 //
 //        move(0, 0.5, 90, .3, .3, 0, "strafe", true);
 //        grip();
@@ -164,15 +185,15 @@ public class RedSkystone extends Auto {
     }
 
     public void goRight() throws InterruptedException {
-        newMove(new Waypoint(0,0), new Waypoint(-15, -27), 0, .2, .3, 0, true);
+        newMove(new Waypoint(0,0), new Waypoint(-14.5, -27), 0, .2, .3, 0, true);
 //        xSkystone = new double[]{0, -5, 0, -25};
 //        ySkystone = new double[]{0, 2, 2, 2};
 
         xSkystone = new double[]{0, -5, -8, -30};
-        ySkystone = new double[]{0, 0, 2, 2};
+        ySkystone = new double[]{0, 0, 2.2, 2.2};
 
         xPlatform = new double[]{0, -15, -15, -30};
-        yPlatform = new double[]{3, 3, 0, -0.5};
+        yPlatform = new double[]{3, 3, 0, -1.25};
 
         xCrossBridge = new double[]{-27, -15, -15, 15};
         yCrossBridge = new double[]{-3, -3, 1, 1};
@@ -188,9 +209,15 @@ public class RedSkystone extends Auto {
         //move(0, 44, 180, .8, .35, .35, "straight", false);
 //
         splineMove(xSkystone, ySkystone, -.8, -.35, -.6, 0, false);
-        splineMove(xPlatform, yPlatform, -.6, -.6, -.4, 0, true);
+        splineMove(xPlatform, yPlatform, -.8, -.8, -.4, 0, true);
 
         placeStone();
+
+        splineMove(xCrossBridge, yCrossBridge, .8, .4, .6, 0, false);
+
+        bringAlignerDown();
+
+        newMove(new Waypoint(0,0), new Waypoint(18, -1.5), 0, .3, .55, 0, true);
 //
 //        move(0, 1, 90, .3, .3, 0, "strafe", true);
 //        grip();

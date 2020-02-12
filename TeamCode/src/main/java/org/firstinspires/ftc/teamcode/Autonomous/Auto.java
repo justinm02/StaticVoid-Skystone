@@ -31,7 +31,7 @@ public abstract class Auto extends LinearOpMode {
     public Servo blockClaw, blockRotator, autoBlockGrabber, blockAligner;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
-    private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
+    public PositionTracker positionTracker = new PositionTracker(0, 0, 0);
     private DcMotorEx[] motors = {leftFront, leftBack, rightFront, rightBack};
     private PID forwardHeadingPID = new PID(0.04, 0, 0.0024);
     //private PID forwardHeadingPID = new PID(0, 0, 0);
@@ -168,7 +168,7 @@ public abstract class Auto extends LinearOpMode {
 
     public SKYSTONE_POSITION determineSkystonePosition(String team) throws InterruptedException {
         openCV.openCamera(team);
-        pause(0.5);
+        pause(0.15);
 
         int[] detectionVals = openCV.detectSkystone();
 
@@ -351,7 +351,7 @@ public abstract class Auto extends LinearOpMode {
             motionProfiler = new MotionProfiler(.35);
 
             if (Math.abs(adjDirection) < 95 && Math.abs(adjDirection) > 85) {
-                epsilonX = Math.abs(end.getXcoord() - start.getXcoord())/3;
+                epsilonX = Math.abs(end.getXcoord() - start.getXcoord())*3/4;
                 epsilonY = Math.abs(end.getYcoord() - start.getYcoord())/10;
             }
             else {
@@ -466,11 +466,9 @@ public abstract class Auto extends LinearOpMode {
     public void splineMove(double[] xcoords, double[] ycoords, double maximumPower, double initPower, double finalPower, double offset, boolean halt) throws InterruptedException {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
         double baseParallelRightTicks = -rightVerticalSlide.getCurrentPosition();
-        double basePerpendicularTicks = -rightIntake.getCurrentPosition();
 
         double parallelLeftTicks = 0;
         double parallelRightTicks = 0;
-        double perpendicularTicks = 0;
 
         double sRight = 0;
         double sLeft = 0;
@@ -508,7 +506,6 @@ public abstract class Auto extends LinearOpMode {
             //distanceTraveled computed by converting encoderTraveled ticks on deadwheel to inches traveled
             parallelLeftTicks = leftIntake.getCurrentPosition() - baseParallelLeftTicks;
             parallelRightTicks = -rightVerticalSlide.getCurrentPosition() - baseParallelRightTicks;
-            perpendicularTicks = -rightIntake.getCurrentPosition() - basePerpendicularTicks;
 
             sRight = (parallelRightTicks) * DEADWHEEL_INCHES_OVER_TICKS;
             sLeft = (parallelLeftTicks) * DEADWHEEL_INCHES_OVER_TICKS;
