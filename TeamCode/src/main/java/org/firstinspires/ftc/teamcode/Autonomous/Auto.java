@@ -28,7 +28,7 @@ public abstract class Auto extends LinearOpMode {
     public ElapsedTime runtime = new ElapsedTime();
     private BNO055IMU imu;
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, leftVerticalSlide, rightVerticalSlide;
-    public Servo blockClaw, blockRotator, autoBlockGrabber, blockAligner;
+    public Servo blockClaw, blockRotator, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     public PositionTracker positionTracker = new PositionTracker(0, 0, 0);
@@ -52,7 +52,9 @@ public abstract class Auto extends LinearOpMode {
     private double epsilonY = 2.25;
     private final double epsilonAngle = 3;
 
-    private Vuforia vuforia = new Vuforia();
+    private SKYSTONE_POSITION skystoneOrientation;
+    private TEAM autoTeam;
+
     private OpenCV openCV = new OpenCV();
 
     private MotionProfiler motionProfiler;
@@ -64,6 +66,11 @@ public abstract class Auto extends LinearOpMode {
         LEFT,
         MIDDLE,
         RIGHT
+    }
+
+    public enum TEAM {
+        RED,
+        BLUE
     }
 
     public void initialize() {
@@ -141,22 +148,30 @@ public abstract class Auto extends LinearOpMode {
         blockRotator = hardwareMap.servo.get("blockRotator");
         leftPlatformLatcher = hardwareMap.servo.get("leftPlatformLatcher");
         rightPlatformLatcher = hardwareMap.servo.get("rightPlatformLatcher");
-        autoBlockGrabber = hardwareMap.servo.get("autoBlockGrabber");
-        blockAligner = hardwareMap.servo.get("blockAligner");
+
+        rightAutoBlockGrabber = hardwareMap.servo.get("rightAutoBlockGrabber");
+        rightBlockAligner = hardwareMap.servo.get("rightBlockAligner");
+
+        leftAutoBlockGrabber = hardwareMap.servo.get("leftAutoBlockGrabber");
+        leftBlockAligner = hardwareMap.servo.get("leftBlockAligner");
 
         blockClaw.setPosition(.26);
         blockRotator.setPosition(.485);
 
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(0);
-        autoBlockGrabber.setPosition(0);
-        blockAligner.setPosition(.2);
+
+        rightAutoBlockGrabber.setPosition(0);
+        rightBlockAligner.setPosition(.2);
+
+        leftAutoBlockGrabber.setPosition(0);
+        leftBlockAligner.setPosition(.2);
 
         //test
-        leftPlatformLatcher.setPosition(0);
-        rightPlatformLatcher.setPosition(0);
-        autoBlockGrabber.setPosition(0);
-        blockAligner.setPosition(.2);
+//        leftPlatformLatcher.setPosition(0);
+//        rightPlatformLatcher.setPosition(0);
+//        rightAutoBlockGrabber.setPosition(0);
+//        blockAligner.setPosition(.2);
     }
 
     public void initGyro() {
@@ -170,21 +185,31 @@ public abstract class Auto extends LinearOpMode {
         openCV.openCamera(team);
         pause(0.15);
 
+        if (team.contains("red")) {
+            autoTeam = TEAM.RED;
+        }
+        else {
+            autoTeam = TEAM.BLUE;
+        }
+
+
         int[] detectionVals = openCV.detectSkystone();
 
         if (detectionVals[0] == 0) {
-            return SKYSTONE_POSITION.LEFT;
+            skystoneOrientation = SKYSTONE_POSITION.LEFT;
         }
         else if (detectionVals[1] == 0) {
-            return SKYSTONE_POSITION.MIDDLE;
+            skystoneOrientation = SKYSTONE_POSITION.MIDDLE;
         }
         else {
             if (detectionVals[2] != 0) {
                 telemetry.addData("POSITION FAILED", SKYSTONE_POSITION.RIGHT);
                 telemetry.update();
             }
-            return SKYSTONE_POSITION.RIGHT;
+            skystoneOrientation = SKYSTONE_POSITION.RIGHT;
         }
+
+        return skystoneOrientation;
     }
 
     public double getError(double current, double target) {
@@ -206,12 +231,10 @@ public abstract class Auto extends LinearOpMode {
 
     public void move(double targetHeading, double magnitude, int direction, double maximumPower, double initPower, double finalPower, String movement, boolean halt) throws InterruptedException {
         double baseParallelLeftTicks = leftIntake.getCurrentPosition();
-        double baseParallelRightTicks = rightVerticalSlide.getCurrentPosition();
-        double basePerpendicularTicks = rightIntake.getCurrentPosition();
-        double directionRadians = Math.toRadians(direction - targetHeading);
+        double baseParallelRightTicks = -rightVerticalSlide.getCurrentPosition();
+        double basePerpendicularTicks = -rightIntake.getCurrentPosition();
 
-        double baseXPosition = positionTracker.getCurrentX();
-        double baseYPosition = positionTracker.getCurrentY();
+        double directionRadians = Math.toRadians(direction - targetHeading);
 
         double sRight = 0;
         double sLeft = 0;
@@ -220,12 +243,6 @@ public abstract class Auto extends LinearOpMode {
 
         double headingError;
         double headingCorrection;
-
-        double xPositionError;
-        double xPositionCorrection;
-
-        double yPositionError;
-        double yPositionCorrection;
 
         double dTravelled = 0;
         double parallelLeftTicks = 0;
@@ -245,30 +262,22 @@ public abstract class Auto extends LinearOpMode {
         }
 
         while (dTravelled < magnitude) {
-            double targetX = Math.cos(directionRadians)*dTravelled;
-            double targetY = Math.sin(directionRadians)*dTravelled;
-
             //when axis between -179 and 179 degrees is crossed, degrees must be converted from 0 - 360 degrees. 179-(-179) = 358. 179 - 181 = -2. Big difference
             headingError = getError(currentAngle(), targetHeading);
-
-            double errorX = targetX - (positionTracker.getCurrentX() - baseXPosition);
-            double errorY = targetY - (positionTracker.getCurrentY() - baseYPosition);
 
 //            telemetry.addData("error", error);
 //            telemetry.update();
 
             headingCorrection = headingPID.getCorrection(headingError, runtime);
-            xPositionCorrection = /*xPositionPID.getCorrection(errorX, runtime)*/0;
-            yPositionCorrection = /*yPositionPID.getCorrection(errorY, runtime)*/0;
 
             double proportionTravelled = dTravelled / magnitude;
 
             currentPower = motionProfiler.getProfilePower(proportionTravelled, maximumPower, initPower, finalPower);
 
-            double leftFrontPower = Math.sin(directionRadians + 3 * Math.PI / 4) - headingCorrection + xPositionCorrection - yPositionCorrection;
-            double leftBackPower = Math.sin(directionRadians + Math.PI / 4) - headingCorrection + xPositionCorrection + yPositionCorrection;
-            double rightFrontPower = Math.sin(directionRadians + Math.PI / 4) + headingCorrection + xPositionCorrection + yPositionCorrection;
-            double rightBackPower = Math.sin(directionRadians + 3 * Math.PI / 4) + headingCorrection + xPositionCorrection - yPositionCorrection;
+            double leftFrontPower = Math.sin(directionRadians + 3 * Math.PI / 4) - headingCorrection;
+            double leftBackPower = Math.sin(directionRadians + Math.PI / 4) - headingCorrection;
+            double rightFrontPower = Math.sin(directionRadians + Math.PI / 4) + headingCorrection;
+            double rightBackPower = Math.sin(directionRadians + 3 * Math.PI / 4) + headingCorrection;
 
             double conversion = Math.abs(currentPower / getMaxMagnitude(new double[]{leftFrontPower, leftBackPower, rightFrontPower, rightBackPower}));
 
@@ -278,8 +287,8 @@ public abstract class Auto extends LinearOpMode {
             rightBack.setPower(conversion * rightBackPower);
 
             parallelLeftTicks = leftIntake.getCurrentPosition() - baseParallelLeftTicks;
-            parallelRightTicks = rightVerticalSlide.getCurrentPosition() - baseParallelRightTicks;
-            perpendicularTicks = rightIntake.getCurrentPosition() - basePerpendicularTicks;
+            parallelRightTicks = -rightVerticalSlide.getCurrentPosition() - baseParallelRightTicks;
+            perpendicularTicks = -rightIntake.getCurrentPosition() - basePerpendicularTicks;
 
             sRight = (parallelRightTicks) * DEADWHEEL_INCHES_OVER_TICKS;
             sLeft = (parallelLeftTicks) * DEADWHEEL_INCHES_OVER_TICKS;
@@ -287,38 +296,36 @@ public abstract class Auto extends LinearOpMode {
             sStrafe = perpendicularTicks * DEADWHEEL_INCHES_OVER_TICKS;
 
             dTravelled = Math.sqrt(Math.pow(sAvg, 2) + Math.pow(sStrafe, 2));
-            telemetry.addData("dTravelled", dTravelled);
-            telemetry.addData("sLeft", sLeft);
-            telemetry.addData("sRight", sRight);
-            telemetry.update();
+//            telemetry.addData("dTravelled", dTravelled);
+//            telemetry.addData("sLeft", sLeft);
+//            telemetry.addData("sRight", sRight);
+//            telemetry.update();
 
             positionTracker.updateTicks(parallelLeftTicks, parallelRightTicks, perpendicularTicks);
             positionTracker.updateLocationAndPose(telemetry, "move");
 
-            telemetry.addData("dTravelled", dTravelled);
-            telemetry.addData("sLeft", sLeft);
-            telemetry.addData("sRight", sRight);
-            telemetry.addData("sAvg", sAvg);
-            telemetry.addData("Right ticks", parallelRightTicks);
-            telemetry.addData("Left ticks", parallelLeftTicks);
-            telemetry.addData("Strafe ticks", perpendicularTicks);
-            telemetry.update();
+//            telemetry.addData("dTravelled", dTravelled);
+//            telemetry.addData("sLeft", sLeft);
+//            telemetry.addData("sRight", sRight);
+//            telemetry.addData("sAvg", sAvg);
+//            telemetry.addData("Right ticks", parallelRightTicks);
+//            telemetry.addData("Left ticks", parallelLeftTicks);
+//            telemetry.addData("Strafe ticks", perpendicularTicks);
+//            telemetry.update();
 
             heartbeat();
 
-            telemetry.addData("X value", positionTracker.getCurrentX());
-            telemetry.addData("Y value", positionTracker.getCurrentY());
-            telemetry.addData("currentAngle", currentAngle());
-            telemetry.addData("deadwheel angle", positionTracker.getCurrentAngle());
-            telemetry.addData("actual left front power", leftFront.getPower());
-            telemetry.addData("actual right front power", rightFront.getPower());
-            telemetry.addData("actual left back power", leftBack.getPower());
-            telemetry.addData("actual right back power", rightBack.getPower());
-            telemetry.addData("errorX", errorX);
-            telemetry.addData("targetXPosition", targetX);
-            telemetry.addData("Current X", positionTracker.getCurrentX() - baseXPosition);
-            telemetry.addData("Current X", positionTracker.getCurrentY() - baseYPosition);
-            telemetry.update();
+//            telemetry.addData("X value", positionTracker.getCurrentX());
+//            telemetry.addData("Y value", positionTracker.getCurrentY());
+//            telemetry.addData("currentAngle", currentAngle());
+//            telemetry.addData("deadwheel angle", positionTracker.getCurrentAngle());
+//            telemetry.addData("actual left front power", leftFront.getPower());
+//            telemetry.addData("actual right front power", rightFront.getPower());
+//            telemetry.addData("actual left back power", leftBack.getPower());
+//            telemetry.addData("actual right back power", rightBack.getPower());
+//            telemetry.addData("Current X", positionTracker.getCurrentX() - baseXPosition);
+//            telemetry.addData("Current X", positionTracker.getCurrentY() - baseYPosition);
+//            telemetry.update();
         }
 
         if (halt) {
@@ -326,7 +333,9 @@ public abstract class Auto extends LinearOpMode {
         }
     }
 
-    public void newMove(Waypoint start, Waypoint end, double targetHeading, double initPower, double maxPower, double finPower, boolean halt) throws InterruptedException{
+    public void newMove(Waypoint start, Waypoint end, double targetHeading, double initPower, double maxPower, double finPower, boolean halt, double epX, double epY) throws InterruptedException{
+        double time = runtime.time();
+
         double directionField = Math.atan2(end.getYcoord() - start.getYcoord(), end.getXcoord() - start.getXcoord());
         //double directionRobot = (directionField - positionTracker.getInitAngle() + 180)%360 - 180;
         double adjDirection = Math.toDegrees(directionField) - targetHeading;
@@ -355,14 +364,17 @@ public abstract class Auto extends LinearOpMode {
                 epsilonY = Math.abs(end.getYcoord() - start.getYcoord())/10;
             }
             else {
-                epsilonX = Math.abs(end.getXcoord() - start.getXcoord())/10;
+                epsilonX = Math.abs(end.getXcoord() - start.getXcoord())/4.5;
                 epsilonY = Math.abs(end.getYcoord() - start.getYcoord())/10;
             }
         }
 
+        epsilonX = epX;
+        epsilonY = epY;
+
         double idealDistance =  Math.sqrt(Math.pow(end.getXcoord() - baseXCoord, 2) + Math.pow(end.getYcoord() - baseYCoord, 2));
 
-        while(Math.abs(end.getXcoord() - positionTracker.getCurrentX()) > epsilonX || Math.abs(end.getYcoord() - positionTracker.getCurrentY()) > epsilonY || Math.abs(targetHeading - positionTracker.getCurrentAngle()) > epsilonAngle){
+        while((Math.abs(end.getXcoord() - positionTracker.getCurrentX()) > epsilonX || Math.abs(end.getYcoord() - positionTracker.getCurrentY()) > epsilonY || Math.abs(targetHeading - positionTracker.getCurrentAngle()) > epsilonAngle) && runtime.time() - time < 4){
             heartbeat();
 
             positionTracker.updateTicks(leftIntake.getCurrentPosition() - baseParallelLeftTicks, -rightVerticalSlide.getCurrentPosition() - baseParallelRightTicks, -rightIntake.getCurrentPosition() - basePerpendicularTicks);
@@ -384,7 +396,7 @@ public abstract class Auto extends LinearOpMode {
             double headingCorrection = headingPID.getCorrection(errorHeading, runtime);
 
             double pastSetPoint = 0;
-            double finPosAdj = 0.9;
+            double finPosAdj = 1.25;
             if(propTravelled < 1){
                 pastSetPoint = 1;
                 finPosAdj = 1;
@@ -408,24 +420,24 @@ public abstract class Auto extends LinearOpMode {
             rightFront.setPower(conversion*rightFrontPower);
             rightBack.setPower(conversion*rightBackPower);
 
-            telemetry.addData("error X", errorX);
-            telemetry.addData("propTravelled", propTravelled);
-            telemetry.addData("targetY", targetY);
-            telemetry.addData("Current y", positionTracker.getCurrentY());
-            telemetry.addData("error Y", errorY);
-//            telemetry.addData("adjacentDirection", adjDirection);
-//            telemetry.addData("targetHeading", targetHeading);
-            telemetry.addData("direction", directionField);
-            telemetry.addData("posErrorAngle", Math.toDegrees(posErrorAngle));
-            telemetry.addData("lfPower", leftFront.getPower());
-            telemetry.addData("rfPower", rightFront.getPower());
-            telemetry.addData("lbPower", leftBack.getPower());
-            telemetry.addData("rbPower", rightBack.getPower());
-            //telemetry.addData("position correction", posCorrection*Math.sin(posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4));
-//            telemetry.addData("sin value 3pi/4", Math.sin(posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4));
-//            telemetry.addData("sin value pi/4", Math.sin(posErrorAngle - Math.toRadians(targetHeading) + Math.PI/4));
-//            telemetry.addData("convertedAngle", posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4);
-            telemetry.update();
+//            telemetry.addData("error X", errorX);
+//            telemetry.addData("propTravelled", propTravelled);
+//            telemetry.addData("targetY", targetY);
+//            telemetry.addData("Current y", positionTracker.getCurrentY());
+//            telemetry.addData("error Y", errorY);
+////            telemetry.addData("adjacentDirection", adjDirection);
+////            telemetry.addData("targetHeading", targetHeading);
+//            telemetry.addData("direction", directionField);
+//            telemetry.addData("posErrorAngle", Math.toDegrees(posErrorAngle));
+//            telemetry.addData("lfPower", leftFront.getPower());
+//            telemetry.addData("rfPower", rightFront.getPower());
+//            telemetry.addData("lbPower", leftBack.getPower());
+//            telemetry.addData("rbPower", rightBack.getPower());
+//            //telemetry.addData("position correction", posCorrection*Math.sin(posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4));
+////            telemetry.addData("sin value 3pi/4", Math.sin(posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4));
+////            telemetry.addData("sin value pi/4", Math.sin(posErrorAngle - Math.toRadians(targetHeading) + Math.PI/4));
+////            telemetry.addData("convertedAngle", posErrorAngle - Math.toRadians(targetHeading) + 3*Math.PI/4);
+//            telemetry.update();
 
         }
         if (halt) {
@@ -649,10 +661,10 @@ public abstract class Auto extends LinearOpMode {
             rightFront.setPower(rightPower);
             leftBack.setPower(leftPower);
             rightBack.setPower(rightPower);
-            telemetry.addData("left expected power", leftPower);
-            telemetry.addData("right expected power", rightPower);
-            telemetry.addData("actual left power", leftFront.getPower());
-            telemetry.addData("actual right power", rightFront.getPower());
+//            telemetry.addData("left expected power", leftPower);
+//            telemetry.addData("right expected power", rightPower);
+//            telemetry.addData("actual left power", leftFront.getPower());
+//            telemetry.addData("actual right power", rightFront.getPower());
         }
 
         //pd correction for strafe motion. Right and left are opposites
@@ -672,15 +684,15 @@ public abstract class Auto extends LinearOpMode {
             }
         }
 
-        telemetry.addData("current Angle", current);
-        telemetry.addData("target", target);
-        telemetry.addData("error", error);
-        telemetry.addData("lf", leftFront.getPower());
-        telemetry.addData("lb", leftBack.getPower());
-        telemetry.addData("rf", rightFront.getPower());
-        telemetry.addData("rb", rightBack.getPower());
-        telemetry.addData("avg power", (rightBack.getPower() + rightFront.getPower() + leftBack.getPower() + leftFront.getPower()) / 4);
-        telemetry.update();
+//        telemetry.addData("current Angle", current);
+//        telemetry.addData("target", target);
+//        telemetry.addData("error", error);
+//        telemetry.addData("lf", leftFront.getPower());
+//        telemetry.addData("lb", leftBack.getPower());
+//        telemetry.addData("rf", rightFront.getPower());
+//        telemetry.addData("rb", rightBack.getPower());
+//        telemetry.addData("avg power", (rightBack.getPower() + rightFront.getPower() + leftBack.getPower() + leftFront.getPower()) / 4);
+//        telemetry.update();
     }
 
     public void halt() {
@@ -714,8 +726,8 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void gripPlatform() {
-        leftPlatformLatcher.setPosition(1);
         rightPlatformLatcher.setPosition(1);
+        leftPlatformLatcher.setPosition(1);
 
         //test
         rightPlatformLatcher.setPosition(1);
@@ -727,25 +739,55 @@ public abstract class Auto extends LinearOpMode {
         rightPlatformLatcher.setPosition(0);
     }
 
-    public void bringAlignerDown() {
-        blockAligner.setPosition(.55);
+    public void bringAlignerDown(String aligner) {
+        if (aligner.contains("right")) {
+            rightBlockAligner.setPosition(.6);
+            rightAutoBlockGrabber.setPosition(0);
+        }
+        else {
+            leftBlockAligner.setPosition(.6);
+            leftAutoBlockGrabber.setPosition(0);
+        }
     }
 
     public void grip() {
-        autoBlockGrabber.setPosition(1);
+        leftAutoBlockGrabber.setPosition(1);
+        rightAutoBlockGrabber.setPosition(1);
     }
 
-    public void gripBlock() throws InterruptedException {
-        blockAligner.setPosition(1);
-        autoBlockGrabber.setPosition(1);
+    public void gripBlock(String aligner) throws InterruptedException {
+        if (aligner.contains("right")) {
+            rightBlockAligner.setPosition(1);
+            pause(.3);
+            rightAutoBlockGrabber.setPosition(1);
+        }
+        else {
+            leftBlockAligner.setPosition(1);
+            pause(.3);
+            leftAutoBlockGrabber.setPosition(1);
+        }
     }
 
-    public void bringAlignerUp() {
-        blockAligner.setPosition(.2);
+    public void bringAlignerUp(String aligner) {
+        if (aligner.contains("right")) {
+            rightBlockAligner.setPosition(.2);
+        }
+        else {
+            leftBlockAligner.setPosition(.2);
+        }
     }
 
-    public void releaseBlock() {
-        autoBlockGrabber.setPosition(0);
+    public void releaseBlock(String aligner) throws InterruptedException {
+        if (aligner.contains("right")) {
+            rightBlockAligner.setPosition(.6);
+            pause(.3);
+            rightAutoBlockGrabber.setPosition(0);
+        }
+        else {
+            leftBlockAligner.setPosition(.6);
+            pause(.3);
+            leftAutoBlockGrabber.setPosition(0);
+        }
     }
 
     public void extendHorizontalSlide() {

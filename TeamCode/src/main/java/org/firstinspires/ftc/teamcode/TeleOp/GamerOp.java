@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Localization.PositionTracker;
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, leftVerticalSlide, rightVerticalSlide;
-    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher, autoBlockGrabber, blockAligner, capstoneDeployer;
+    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner, capstoneDeployer;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private boolean precision, direction, precisionChanged, directionChanged;
@@ -114,22 +114,27 @@ public class GamerOp extends OpMode {
         blockClaw = hardwareMap.servo.get("blockClaw");
         leftPlatformLatcher = hardwareMap.servo.get("leftPlatformLatcher");
         rightPlatformLatcher = hardwareMap.servo.get("rightPlatformLatcher");
-        autoBlockGrabber = hardwareMap.servo.get("autoBlockGrabber");
-        blockAligner = hardwareMap.servo.get("blockAligner");
+
+        rightAutoBlockGrabber = hardwareMap.servo.get("rightAutoBlockGrabber");
+        rightBlockAligner = hardwareMap.servo.get("rightBlockAligner");
+
+        leftAutoBlockGrabber = hardwareMap.servo.get("leftAutoBlockGrabber");
+        leftBlockAligner = hardwareMap.servo.get("leftBlockAligner");
+
         capstoneDeployer = hardwareMap.servo.get("capstoneDeployer");
 
         blockClaw.setPosition(.1);
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(0);
-        autoBlockGrabber.setPosition(1);
-        blockAligner.setPosition(.2);
+        rightAutoBlockGrabber.setPosition(1);
+        rightBlockAligner.setPosition(.2);
 
         //test
-        blockClaw.setPosition(.1);
-        leftPlatformLatcher.setPosition(0);
-        rightPlatformLatcher.setPosition(0);
-        autoBlockGrabber.setPosition(1);
-        blockAligner.setPosition(.2);
+//        blockClaw.setPosition(.1);
+//        leftPlatformLatcher.setPosition(0);
+//        rightPlatformLatcher.setPosition(0);
+        leftAutoBlockGrabber.setPosition(1);
+        leftBlockAligner.setPosition(.2);
     }
 
     @Override
@@ -196,13 +201,13 @@ public class GamerOp extends OpMode {
             precisionChanged = false;
         }
 
-        if (gamepad1.x && !directionChanged && !useOneGamepad) {
-            direction = !direction;
-            directionChanged = true;
-        }
-        else if (!gamepad1.x && !useOneGamepad) {
-            directionChanged = false;
-        }
+//        if (gamepad1.x && !directionChanged && !useOneGamepad) {
+//            direction = !direction;
+//            directionChanged = true;
+//        }
+//        else if (!gamepad1.x && !useOneGamepad) {
+//            directionChanged = false;
+//        }
 
         double xMagnitude = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
         double xLinear = direction ? xMagnitude : -xMagnitude;
@@ -356,20 +361,20 @@ public class GamerOp extends OpMode {
     public void autoGripBlock() {
         if (!useOneGamepad) {
             if (gamepad1.dpad_right) {
-                autoBlockGrabber.setPosition(0); // up
+                rightAutoBlockGrabber.setPosition(0); // up
             } else if (gamepad1.dpad_left) {
-                autoBlockGrabber.setPosition(1); // down
+                rightAutoBlockGrabber.setPosition(1); // down
             }
             if (gamepad1.dpad_down) {
-                blockAligner.setPosition(1); // down
+                rightBlockAligner.setPosition(1); // down
             } else if (gamepad1.dpad_up) {
-                blockAligner.setPosition(0.2); // up
+                rightBlockAligner.setPosition(0.2); // up
             }
         }
     }
 
     public void deployCapstone() {
-        if ((gamepad2.a && !gamepad2.start) || (useOneGamepad && gamepad1.a && !gamepad1.start) && !deployerPositionChanged) {
+        if (((gamepad2.a && !gamepad2.start) || (useOneGamepad && gamepad1.a && !gamepad1.start)) && !deployerPositionChanged) {
             time = runtime.time();
             capstoneDeployer.setPosition(deployerClosed ? 1 : 0);
             deployerClosed = !deployerClosed;
@@ -378,6 +383,7 @@ public class GamerOp extends OpMode {
         else if ((!useOneGamepad && !gamepad2.a) || (useOneGamepad && !gamepad1.a)) {
             deployerPositionChanged = false;
         }
+
         if (runtime.time() - time > 1.5) {
             capstoneDeployer.setPosition(1);
         }

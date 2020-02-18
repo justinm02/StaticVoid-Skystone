@@ -35,8 +35,8 @@ public class OpenCV extends LinearOpMode {
     private static int valLeft = 255;
     private static int valRight = 255;
 
-    private static float rectHeight = .6f/8f;
-    private static float rectWidth = 1.0f/8f;
+    private static float rectHeight = 0.4f/8f;
+    private static float rectWidth = 0.5f/8f;
 
     private static float offsetX = 0f/8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
     private static float offsetY = 0f/8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
@@ -63,10 +63,9 @@ public class OpenCV extends LinearOpMode {
 
     public void openCamera(String team) {
         if (team.contains("blue")) {
-            midPos = new float[]{3.5f / 8f + offsetX, 5f / 8f + offsetY};
-            leftPos = new float[]{2.0f/8f+offsetX, 5f/8f+offsetY};
-            rightPos  = new float[]{5.0f/8f+offsetX, 5f/8f+offsetY};
-            rectWidth = 0.5f/8f;
+            midPos = new float[]{3.35f / 8f + offsetX, 4.65f / 8f + offsetY};
+            leftPos = new float[]{1.35f/8f+offsetX, 4.65f/8f+offsetY};
+            rightPos  = new float[]{5.35f/8f+offsetX, 4.65f/8f+offsetY};
         }
         else {
             midPos = new float[]{3.85f/8f + offsetX, 4.65f/8f + offsetY};

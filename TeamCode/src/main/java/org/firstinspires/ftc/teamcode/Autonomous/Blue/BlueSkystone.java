@@ -3,13 +3,14 @@ package org.firstinspires.ftc.teamcode.Autonomous.Blue;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Autonomous.Auto;
+import org.firstinspires.ftc.teamcode.Autonomous.Spline.Waypoint;
 
 
 @Autonomous(name = "BlueSkystone", group = "Autonomous")
 public class BlueSkystone extends Auto {
 
-    private double xSkystone[], ySkystone[], xSkystone2[], ySkystone2[], movePlatformX[];
-    private double xPlatform[], yPlatform[], xCrossBridge[], yCrossBridge[], movePlatformY[];
+    private double xSkystone[], ySkystone[], xSkystone2[], ySkystone2[], xCrossBridge2[], xPlatform2[], xCrossBridge3[], xStone3[], xCrossBridge4[], xPlatform3[], movePlatformX[];
+    private double xPlatform[], yPlatform[], xCrossBridge[], yCrossBridge[], yCrossBridge2[], yPlatform2[], yCrossBridge3[], yStone3[], yCrossBridge4[], yPlatform3[], movePlatformY[];
 
     private SKYSTONE_POSITION position;
 
@@ -19,14 +20,7 @@ public class BlueSkystone extends Auto {
 
         try {
             position = determineSkystonePosition("blue");
-
-            double current = runtime.time();
-            while (runtime.time() - current < 0.125) {
-                telemetry.addData("position", position);
-                telemetry.update();
-            }
-
-            bringAlignerDown();
+            bringAlignerDown("right");
 
             if (position.equals(SKYSTONE_POSITION.MIDDLE)) {
                 goMiddle();
@@ -40,227 +34,217 @@ public class BlueSkystone extends Auto {
         }
     }
 
-    public void goMiddle() throws InterruptedException {
-        xSkystone = new double[]{0, 5, 8, 40};
-        ySkystone = new double[]{0, 0, 4, 4};
-
-        xPlatform = new double[]{0, 15, 15, 36};
-        yPlatform = new double[]{5, 5, 0, 0};
-
-        xCrossBridge = new double[]{43, 15, 15, 3};
-        yCrossBridge = new double[]{-3, -3, 0, 0};
-
-        xSkystone2 = new double[]{0, 5, 8, 45};
-        ySkystone2 = new double[]{0, 0, 4, 4};
-
-        movePlatformX = new double[]{0, 20, 20};
-        movePlatformY = new double[]{0, 0, 14};
-
-        move(0, 28, -90, .6, .35, 0, "strafe", true);
-        grabBlock();
-        move(0, 1, 90, .5, .4, .3, "strafe", true);
-
-        splineMove(xSkystone, ySkystone, .65, .35, .35, 0, false);
-        splineMove(xPlatform, yPlatform, .35, .35, .2, 0, true);
-
-        move(0, 3, -90, .5, .5, .4, "strafe", true);
-
-        placeStone();
-
-        move(0, 1.5, 90, .5, .5, 0, "strafe", true);
-        grip();
-
-        splineMove(xCrossBridge, yCrossBridge, -.8, -.35, -.65, 0, false);
-        bringAlignerDown();
-        releaseBlock();
-
-        move(0, 48, 180, .65, .65, .5, "straight", true);
-        moveByTime(.65, -.5, 0);
-
-        move(0, 6, -90, .5, .5, .5, "strafe", true);
-
-        grabBlock();
-        pause(.25);
-
-        move(0, 2, 90, .5, .5, .5, "strafe", true);
-
-        splineMove(xSkystone2, ySkystone2, .75, .35, .6, 0, false);
-        splineMove(xPlatform, yPlatform, .6, .6, .6, 0, false);
-        move(0, 26, 0, .6, .6, .45, "straight", true);
-        pause(0.5);
-
-        move(0, 4, -90, .5, .5, .5, "strafe", true);
-        placeStone();
-
-        getPlatform("middle");
-
-        grip();
-        move(180, 8.5, -103, 0.85, 0.55, 0.7, "strafe", true);
-        move(180, 17, 180, 0.85, 0.55, 0.7, "straight", true);
-    }
-
     public void goLeft() throws InterruptedException {
-        xSkystone = new double[]{0, 5, 8, 30};
-        ySkystone = new double[]{0, 0, 3, 3};
+        xSkystone = new double[]{0, 5, 17, 21.5};
+        ySkystone = new double[]{0, 0, 2.5, 2.5};
 
-        xPlatform = new double[]{0, 15, 15, 32};
-        yPlatform = new double[]{5, 5, 0, 0};
+        xPlatform = new double[]{0, 5, 32, 37};
+        yPlatform = new double[]{5, 5, -2, -2};
 
-        xCrossBridge = new double[]{43, 15, 15, 0};
-        yCrossBridge = new double[]{-3, -3, 1.5, 1.5};
+        xCrossBridge = new double[]{42.5, 15, 15, 0};
+        yCrossBridge = new double[]{-3, -3, 0.5, 0.5};
 
-        xSkystone2 = new double[]{0, 5, 8, 55};
-        ySkystone2 = new double[]{0, 0, 3, 3};
+        xSkystone2 = new double[]{0, -5, -34, -38};
+        ySkystone2 = new double[]{0, 0, -2.25, -2.25};
 
-        movePlatformX = new double[]{0, 24, 24};
-        movePlatformY = new double[]{0, 0, 14};
+        xCrossBridge2 = new double[]{0, 5, 12, 40};
+        yCrossBridge2 = new double[]{0, 0, 3, 3};
 
+        xPlatform2 = new double[]{0, 5, 50, 61.5};
+        yPlatform2 = new double[]{6.5, 6.5, 0, 0};
 
-        move(0, 27, -79, .8, .4, .3, "strafe", true);
-        grabBlock();
-        move(0, 2, 90, .5, .4, .3, "strafe", true);
+        xCrossBridge3 = new double[]{0, -15, -30, -55};
+        yCrossBridge3 = new double[]{0, 0, 4.15, 4.15};
 
-        splineMove(xSkystone, ySkystone, .6, .3, .45, 0, false);
-        splineMove(xPlatform, yPlatform, .45, .45, .3, 0, true);
+        xStone3 = new double[]{0, 0, -22, -31};
+        yStone3 = new double[]{0, 0, -2.5, -2.5};
 
-        move(0, 3, -90, .5, .4, .3, "strafe", true);
+        xCrossBridge4 = new double[]{0, 5, 8, 24};
+        yCrossBridge4 = new double[]{0, 0, 3, 3};
 
-        placeStone();
+        xPlatform3 = new double[]{0, 15, 40, 49};
+        yPlatform3 = new double[]{5, 5, 0.5, 0.5};
 
-        move(0, 1, 90, .5, .4, 0.3, "strafe", true);
+        movePlatformX = new double[]{0, 14, 17, 17};
+        movePlatformY = new double[]{0, 0, 3.5, 9.5};
+
+        newMove(new Waypoint(0,0), new Waypoint(5.5, -28), 0, .4, .75, 0, true, 4, 2);
+        grabBlock("right");
+
+        splineMove(xSkystone, ySkystone, .9, .4, .7, 0, false);
+        splineMove(xPlatform, yPlatform, .7, .7, .45, 0, true);
+
+        placeStone("right");
+        pause(.3);
         grip();
 
-        splineMove(xCrossBridge, yCrossBridge, -.8, -.35, -.5, 0, true);
-        bringAlignerDown();
-        releaseBlock();
-
-        move(0, 41.5, 180, .5, .5, .3, "straight", true);
-
-        move(0, 10, -90, .5, .4, .3, "strafe", true);
-
-        grabBlock();
+        splineMove(xCrossBridge, yCrossBridge, -.85, -.4, -.75, 0, false);
+        bringAlignerDown("right");
+        splineMove(xSkystone2, ySkystone2, -.75, -.75, -.4, 0, true);
         pause(.25);
+        move(0, 1.4, -90, .5, .3, .3, "strafe", true);
+        grabBlock("right");
 
-        move(0, 4, 90, .5, .4, .3, "strafe", true);
+        splineMove(xCrossBridge2, yCrossBridge2, .8, .4, .8, 0, false);
+        splineMove(xPlatform2, yPlatform2, .8, .8, .4, 0, true);
 
-        splineMove(xSkystone2, ySkystone2, 8, .35, .65, 0, false);
-        splineMove(xPlatform, yPlatform, .65, .65, .5, 0, true);
-        move(0, 8, 0, .8, .5, .5, "straight", true);
-        pause(.25);
-        move(0, 4.5, -90, .5, .4, .3, "strafe", true);
-
-        placeStone();
-
-        getPlatform("left");
-
-        grip();
-        move(180, 13, -103, 0.9, .65, 0.7, "strafe", true);
-        move(180, 12, 180, 0.9, .65, 0.7, "straight", true);
-    }
-
-    public void goRight() throws InterruptedException {
-        xSkystone = new double[]{0, 5, 8, 34};
-        ySkystone = new double[]{0, 0, 4, 4};
-
-        xPlatform = new double[]{0, 15, 15, 42};
-        yPlatform = new double[]{5, 5, 0, 0};
-
-        xCrossBridge = new double[]{30, 15, 15, 0};
-        yCrossBridge = new double[]{-3, -3, 2, 2};
-
-        xSkystone2 = new double[]{0, 5, 8, 45};
-        ySkystone2 = new double[]{0, 0, 4, 4};
-
-        movePlatformX = new double[]{0, 22, 22};
-        movePlatformY = new double[]{0, 0, 12};
-
-        move(0, 29, -99, .6, .3, 0, "strafe", true);
-        grabBlock();
-
-        splineMove(xSkystone, ySkystone, .8, .4, .6, 0, false);
-        splineMove(xPlatform, yPlatform, .6, .6, .6, 0, true);
-
-        pause(.25);
-
-        move(0, 1, -90, .5, .5, .5, "strafe", true);
-
-        placeStone();
-
-        move(0, 5.5, 90, .3, .3, 0, "strafe", true);
+        placeStone("right");
+        pause(.3);
         grip();
 
-        //splineMove(xCrossBridge, yCrossBridge, -.8, -.4, -.6, 0, true);
-
-        move(0, 73, 180, .85, .4, .3, "straight", true);
-        PIDTurn(180, 1);
-        move(180, 16, -90, .6, .6, .6, "strafe", true);
-        intake();
-        moveByTime(1, .5, 180);
-        stopIntake();
-
-        move(180, 13.5, 90, .6, .6, .6, "strafe", true);
-        move(180, 95, 0, .8, .6, .8, "straight", true);
-
-        getPlatform("right");
-
-        move(180, 4, 90, 0.85, 0.7, 0.75, "strafe", true);
-        move(180, 2, 180, 0.85, 0.7, 0.77, "straight", true);
-        move(180, 18, -90, 0.85, 0.7, 0.75, "strafe", true);
-        move(180, 9, 180, 0.9, 0.7, 0.75, "straight", true);
-
-        /*moveByTime(.65, -.3, 0);
-
-        move(0, 9, -90, .5, .5, .5, "strafe", true);
-
-        grabBlock();
+        splineMove(xCrossBridge3, yCrossBridge3, -.9, -.4, -.65, 0, false);
+        bringAlignerDown("right");
+        splineMove(xStone3, yStone3, -.65, -.65, -.3, 0, true);
         pause(.25);
+        move(0, 2.1, -90, .5, .5, .3, "strafe", true);
+        grabBlock("right");
 
-        move(0, 3.5, 90, .5, .5, .5, "strafe", true);
+        splineMove(xCrossBridge4, yCrossBridge4, .9, .4, .9, 0, false);
+        splineMove(xPlatform3, yPlatform3, .9, .9, .4, 0, true);
 
-        splineMove(xSkystone2, ySkystone2, .75, .35, .6, 0, false);
-        splineMove(xPlatform, yPlatform, .6, .6, .6, 0, false);
-        move(0, 2, 0, .6, .6, .45, "straight", true);
-        pause(.5);
-
-        move(0, 4, -90, .45, .45, .45, "strafe", true);
-        placeStone();
-
-        move(0, 6, 0, .6, .6, .45, "straight", true);
+        placeStone("right");
+        pause(.3);
 
         getPlatform();
 
         grip();
-        move(180, 7, -103, 0.85, 0.6, 0.7, "strafe", true);
-        move(180, 16, 180, 0.85, 0.6, 0.7, "straight", true);*/
+        move(180, 10.25, -103, 0.85, 0.6, 0.7, "strafe", true);
+        move(180, 19,180, 0.85, 0.6, 0.7, "straight", true);
     }
 
-    public void grabBlock() throws InterruptedException {
-        gripBlock();
-        pause(.5);
-        bringAlignerUp();
-    }
+    public void goMiddle() throws InterruptedException {
+        xSkystone = new double[]{0, 5, 18, 25};
+        ySkystone = new double[]{0, 0, 3, 3};
 
-    public void placeStone() throws InterruptedException {
-        bringAlignerDown();
+        xPlatform = new double[]{0, 5, 30, 39};
+        yPlatform = new double[]{5, 5, -2.5, -2.5};
+
+        xCrossBridge = new double[]{43, 36, 15, 0.5};
+        yCrossBridge = new double[]{-3, -3, 2.25, 2.25};
+
+        xSkystone2 = new double[]{0, -5, -38, -46};
+        ySkystone2 = new double[]{0, 0, -2, -2};
+
+        xCrossBridge2 = new double[]{0, 5, 12, 40};
+        yCrossBridge2 = new double[]{0, 0, 3.2, 3.2};
+
+        xPlatform2 = new double[]{0, 5, 60, 69};
+        yPlatform2 = new double[]{8, 8, 0, 0};
+
+        xCrossBridge3 = new double[]{0, -15, -30, -59.25};
+        yCrossBridge3 = new double[]{0, 0, 4, 4};
+
+        xStone3 = new double[]{0, 0, -13, -18};
+        yStone3 = new double[]{0, 0, -1.2, -1.2};
+
+        xCrossBridge4 = new double[]{0, 5, 22, 30};
+        yCrossBridge4 = new double[]{0, 0, 4, 4};
+
+        xPlatform3 = new double[]{0, 15, 30, 37.6};
+        yPlatform3 = new double[]{5.7, 5.7, 0, 0};
+
+        movePlatformX = new double[]{0, 17, 20, 20};
+        movePlatformY = new double[]{0, 0, 3.5, 12.5};
+
+        newMove(new Waypoint(0,0), new Waypoint(-1, -26.4), 0, .4, .9, 0, true, 5, 2);
+        grabBlock("right");
+
+        splineMove(xSkystone, ySkystone, .85, .4, .7, 0, false);
+        splineMove(xPlatform, yPlatform, .7, .7, .45, 0, true);
+
+        placeStone("right");
+        pause(.3);
+        grip();
+
+        splineMove(xCrossBridge, yCrossBridge, -.85, -.4, -.75, 0, false);
+        bringAlignerDown("right");
+        splineMove(xSkystone2, ySkystone2, -.75, -.75, -.5, 0, true);
+        moveByTime(.5, -.5, 0);
+        move(0, 1, -90, .5, .3, .3, "strafe", true);
+        grabBlock("right");
+
+        splineMove(xCrossBridge2, yCrossBridge2, .7, .4, .7, 0, false);
+        splineMove(xPlatform2, yPlatform2, .7, .7, .4, 0, true);
+
+        placeStone("right");
+        pause(.3);
+        grip();
+
+        splineMove(xCrossBridge3, yCrossBridge3, -.9, -.4, -.65, 0, false);
+        bringAlignerDown("right");
+        splineMove(xStone3, yStone3, -.65, -.65, -.3, 0, true);
         pause(.25);
-        releaseBlock();
+        move(0, 2.5, -90, .5, .5, .3, "strafe", true);
+        grabBlock("right");
+
+        splineMove(xCrossBridge4, yCrossBridge4, .9, .4, .9, 0, false);
+        splineMove(xPlatform3, yPlatform3, .9, .9, .4, 0, true);
+
+        placeStone("right");
+        pause(.3);
+
+        getPlatform();
+
+        grip();
+        move(180, 11, -103, 0.85, 0.6, 0.7, "strafe", true);
+        move(180, 11, 180, 0.85, 0.6, 0.7, "straight", true);
+    }
+
+    public void goRight() throws InterruptedException {
+        xSkystone = new double[]{0, 5, 28, 34};
+        ySkystone = new double[]{0, 0, 3, 3};
+
+        xPlatform = new double[]{0, 5, 26, 38};
+        yPlatform = new double[]{5, 5, -1, -1};
+
+        xCrossBridge = new double[]{35, 24, 6, 0};
+        yCrossBridge = new double[]{-3, -3, 2, 2};
+
+        xSkystone2 = new double[]{0, -5, -30, -35};
+        ySkystone2 = new double[]{0, 0, -2, -2};
+
+        movePlatformX = new double[]{0, 22, 22};
+        movePlatformY = new double[]{0, 0, 12};
+
+        newMove(new Waypoint(0,0), new Waypoint(-12, -27), 0, .35, .75, 0, true, 2, 2.7);
+        grabBlock("right");
+
+        splineMove(xSkystone, ySkystone, .8, .6, .8, 0, false);
+        splineMove(xPlatform, yPlatform, .8, .8, .4, 0, true);
+
+        placeStone("right");
+        pause(.3);
+        grip();
+
+        splineMove(xCrossBridge, yCrossBridge, -.8, -.5, -.7, 0, false);
+        bringAlignerDown("left");
+        splineMove(xSkystone2, ySkystone2, -.7, -.7, -.4, 0, true);
+        PIDTurn(180, 1);
+        pause(.2);
+        moveByTime(1, .5, 180);
+        pause(.2);
+        move(0, 2, 90, .3, .3, .3, "strafe", true);
+        grabBlock("left");
+    }
+
+    public void grabBlock(String aligner) throws InterruptedException {
+        gripBlock(aligner);
+        pause(.25);
+        bringAlignerUp(aligner);
+    }
+
+    public void placeStone(String aligner) throws InterruptedException {
+        releaseBlock(aligner);
         pause(.1);
-        bringAlignerUp();
-        pause(.25);
+        bringAlignerUp(aligner);
     }
 
-    public void getPlatform(String blockOrientation) throws InterruptedException {
+    public void getPlatform() throws InterruptedException {
         PIDTurn(90, .75);
-        if (blockOrientation.contains("right")) {
-            slideAndMoveByTime(1, -.3, 90);
-
-        }
-        else {
-            move(90, 3, -90, .3, .3, .3, "straight", true);
-        }
+        move(90, 3, -90, .3, .3, .3, "straight", true);
 
         gripPlatform();
-        pause(1);
+        pause(0.75);
 
         splineMove(movePlatformX, movePlatformY, .5, .3, 0, Math.PI/2, true);
 
