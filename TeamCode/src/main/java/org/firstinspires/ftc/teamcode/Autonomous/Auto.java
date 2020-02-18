@@ -164,7 +164,7 @@ public abstract class Auto extends LinearOpMode {
         rightAutoBlockGrabber.setPosition(0);
         rightBlockAligner.setPosition(.2);
 
-        leftAutoBlockGrabber.setPosition(0);
+        leftAutoBlockGrabber.setPosition(1);
         leftBlockAligner.setPosition(.2);
 
         //test
