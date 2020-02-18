@@ -509,7 +509,9 @@ public abstract class Auto extends LinearOpMode {
         motionProfiler = new MotionProfiler(.125);
         double currentPower = 0;
 
-        while (t <= 1.0) {
+        double time = runtime.time();
+
+        while (t <= 1.0 && runtime.time() - time < 7) {
             heartbeat();
 
             currentPower = motionProfiler.getProfilePower(t, maximumPower, initPower, finalPower);
