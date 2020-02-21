@@ -44,22 +44,22 @@ public class BlueSkystone extends Auto {
         xCrossBridge = new double[]{42.5, 15, 15, 0};
         yCrossBridge = new double[]{-3, -3, 0.5, 0.5};
 
-        xSkystone2 = new double[]{0, -5, -34, -38};
+        xSkystone2 = new double[]{0, -5, -34, -40};
         ySkystone2 = new double[]{0, 0, -2.25, -2.25};
 
-        xCrossBridge2 = new double[]{0, 5, 12, 40};
+        xCrossBridge2 = new double[]{-2, 5, 12, 40};
         yCrossBridge2 = new double[]{0, 0, 3.25, 3.25};
 
         xPlatform2 = new double[]{0, 5, 50, 61.5};
-        yPlatform2 = new double[]{6.75, 6.75, 0, 0};
+        yPlatform2 = new double[]{6.75, 6.75, -1, -1};
 
         xCrossBridge3 = new double[]{0, -15, -30, -55};
-        yCrossBridge3 = new double[]{0, 0, 4.5, 4.5};
+        yCrossBridge3 = new double[]{-1, -1, 4.5, 4.5};
 
-        xStone3 = new double[]{0, 0, -22, -31};
+        xStone3 = new double[]{0, 0, -22, -33};
         yStone3 = new double[]{0, 0, -2, -2};
 
-        xCrossBridge4 = new double[]{0, 5, 8, 24};
+        xCrossBridge4 = new double[]{-2, 5, 8, 24};
         yCrossBridge4 = new double[]{0, 0, 3, 3};
 
         xPlatform3 = new double[]{0, 15, 40, 51};
@@ -110,7 +110,7 @@ public class BlueSkystone extends Auto {
         getPlatform();
 
         grip();
-        move(180, 10.25, -103, 0.85, 0.6, 0.7, "strafe", true);
+        move(180, 7, -103, 0.85, 0.6, 0.7, "strafe", true);
         move(180, 19,180, 0.85, 0.6, 0.7, "straight", true);
     }
 

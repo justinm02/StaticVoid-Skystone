@@ -769,14 +769,8 @@ public abstract class Auto extends LinearOpMode {
     }
 
     public void strafeToBlock(String aligner) throws InterruptedException {
-        /*resetMotors();
-        double currentPosition = leftBack.getCurrentPosition();
-        int ticks = (int)(7 * C * STRAFE_COEFFICIENT);*/
         double basePerpendicularTicks = -rightIntake.getCurrentPosition();
-
         double sStrafe = 0;
-
-
         double dTravelled = 0;
         double perpendicularTicks = 0;
 
@@ -799,9 +793,7 @@ public abstract class Auto extends LinearOpMode {
             }
 
             perpendicularTicks = -rightIntake.getCurrentPosition() - basePerpendicularTicks;
-
             sStrafe = perpendicularTicks * DEADWHEEL_INCHES_OVER_TICKS;
-
             dTravelled = sStrafe;
         }
 
