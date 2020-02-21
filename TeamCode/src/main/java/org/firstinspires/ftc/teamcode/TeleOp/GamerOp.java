@@ -138,7 +138,7 @@ public class GamerOp extends OpMode {
 //        leftPlatformLatcher.setPosition(0);
 //        rightPlatformLatcher.setPosition(0);
         leftAutoBlockGrabber.setPosition(1);
-        leftBlockAligner.setPosition(.2);
+        leftBlockAligner.setPosition(1);
     }
 
     @Override
@@ -367,13 +367,17 @@ public class GamerOp extends OpMode {
         if (!useOneGamepad) {
             if (gamepad1.dpad_right) {
                 rightAutoBlockGrabber.setPosition(0); // up
+                leftAutoBlockGrabber.setPosition(1);
             } else if (gamepad1.dpad_left) {
                 rightAutoBlockGrabber.setPosition(1); // down
+                leftAutoBlockGrabber.setPosition(0);
             }
             if (gamepad1.dpad_down) {
                 rightBlockAligner.setPosition(1); // down
+                leftBlockAligner.setPosition(0.2);
             } else if (gamepad1.dpad_up) {
                 rightBlockAligner.setPosition(0.2); // up
+                leftBlockAligner.setPosition(1);
             }
         }
     }

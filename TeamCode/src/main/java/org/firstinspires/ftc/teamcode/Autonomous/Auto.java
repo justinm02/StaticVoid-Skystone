@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -33,8 +35,12 @@ public abstract class Auto extends LinearOpMode {
     public Servo blockClaw, staffServo, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
+
     private DistanceSensor blockLeftSensor;
     private DistanceSensor blockRightSensor;
+    private Rev2mDistanceSensor rightSensorTimeOfFlight;
+    private Rev2mDistanceSensor leftSensorTimeOfFlight;
+
     public PositionTracker positionTracker = new PositionTracker(0, 0, 0);
     private DcMotorEx[] motors = {leftFront, leftBack, rightFront, rightBack};
     private PID forwardHeadingPID = new PID(0.04, 0, 0.0024);
@@ -166,7 +172,7 @@ public abstract class Auto extends LinearOpMode {
         rightBlockAligner.setPosition(.2);
 
         leftAutoBlockGrabber.setPosition(1);
-        leftBlockAligner.setPosition(.2);
+        leftBlockAligner.setPosition(1);
 
         //test
 //        leftPlatformLatcher.setPosition(0);
@@ -183,6 +189,9 @@ public abstract class Auto extends LinearOpMode {
         //init autoBlockGrabber distance sensors
         blockLeftSensor = hardwareMap.get(DistanceSensor.class, "blockLeftSensor");
         blockRightSensor = hardwareMap.get(DistanceSensor.class, "blockRightSensor");
+
+        rightSensorTimeOfFlight = (Rev2mDistanceSensor)blockRightSensor;
+        leftSensorTimeOfFlight = (Rev2mDistanceSensor)blockLeftSensor;
     }
 
     public void initGyro() {
@@ -782,19 +791,23 @@ public abstract class Auto extends LinearOpMode {
             distanceSensor = blockLeftSensor;
         }
 
-        while (distanceSensor.getDistance(DistanceUnit.INCH) > 1.4 && dTravelled < 3.5) {
-            heartbeat();
+        if (!rightSensorTimeOfFlight.didTimeoutOccur()) {
+            while (distanceSensor.getDistance(DistanceUnit.INCH) > 1.4 && dTravelled < 2.5) {
+                heartbeat();
 
-            if (aligner.equals("right")) {
-                correction(.35, 0, "straferight", false, 1);
-            }
-            else {
-                correction(.35, 0, "strafeleft", false, 1);
-            }
+                if (aligner.equals("right")) {
+                    correction(.35, 0, "straferight", false, 1);
+                } else {
+                    correction(.35, 0, "strafeleft", false, 1);
+                }
 
-            perpendicularTicks = -rightIntake.getCurrentPosition() - basePerpendicularTicks;
-            sStrafe = perpendicularTicks * DEADWHEEL_INCHES_OVER_TICKS;
-            dTravelled = sStrafe;
+                perpendicularTicks = -rightIntake.getCurrentPosition() - basePerpendicularTicks;
+                sStrafe = perpendicularTicks * DEADWHEEL_INCHES_OVER_TICKS;
+                dTravelled = sStrafe;
+            }
+        }
+        else {
+            move(0, 1-dTravelled, -90, .35, .35, .35, "strafe", true);
         }
 
         halt();
