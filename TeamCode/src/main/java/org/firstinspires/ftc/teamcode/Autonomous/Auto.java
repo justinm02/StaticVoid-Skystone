@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -13,6 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.teamcode.MotionProfiling.MotionProfiler;
 import org.firstinspires.ftc.teamcode.Autonomous.OpenCV.OpenCV;
@@ -31,12 +33,14 @@ public abstract class Auto extends LinearOpMode {
     public Servo blockClaw, blockRotator, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
+    private DistanceSensor blockLeftSensor;
+    private DistanceSensor blockRightSensor;
     public PositionTracker positionTracker = new PositionTracker(0, 0, 0);
     private DcMotorEx[] motors = {leftFront, leftBack, rightFront, rightBack};
     private PID forwardHeadingPID = new PID(0.04, 0, 0.0024);
     //private PID forwardHeadingPID = new PID(0, 0, 0);
     private Servo leftPlatformLatcher, rightPlatformLatcher;
-    private PID strafePID = new PID(0.05, 0, 0.0038);
+    private PID strafePID = new PID(0.04, 0, 0.004);
     //private PID strafePID = new PID(0, 0, 0);
     private PID positionPID = new PID(.015, 0.0013, 0.0078);
     public int baseParallelLeftPosition, basePerpendicularPosition, baseParallelRightPosition;
@@ -77,6 +81,7 @@ public abstract class Auto extends LinearOpMode {
         initMotors();
         initServos();
         initGyro();
+        initSensors();
 
         openCV.initCamera(hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()));
 
@@ -131,8 +136,6 @@ public abstract class Auto extends LinearOpMode {
         rightVerticalSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightVerticalSlide.setDirection(DcMotor.Direction.REVERSE);
 
-        lowerVerticalLimit = hardwareMap.touchSensor.get("lowerVerticalLimit");
-
         baseParallelLeftPosition = leftIntake.getCurrentPosition();
         baseParallelRightPosition = rightVerticalSlide.getCurrentPosition();
         basePerpendicularPosition = rightIntake.getCurrentPosition();
@@ -141,8 +144,6 @@ public abstract class Auto extends LinearOpMode {
     public void initServos() {
         horizontalSlide = hardwareMap.get(CRServo.class, "horizontalSlide");
         horizontalSlide.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        horizontalLimit = hardwareMap.touchSensor.get("horizontalLimit");
 
         blockClaw = hardwareMap.servo.get("blockClaw");
         blockRotator = hardwareMap.servo.get("blockRotator");
@@ -172,6 +173,16 @@ public abstract class Auto extends LinearOpMode {
 //        rightPlatformLatcher.setPosition(0);
 //        rightAutoBlockGrabber.setPosition(0);
 //        blockAligner.setPosition(.2);
+    }
+
+    public void initSensors() {
+        //init slide limits
+        horizontalLimit = hardwareMap.touchSensor.get("horizontalLimit");
+        lowerVerticalLimit = hardwareMap.touchSensor.get("lowerVerticalLimit");
+
+        //init autoBlockGrabber distance sensors
+        blockLeftSensor = hardwareMap.get(DistanceSensor.class, "blockLeftSensor");
+        blockRightSensor = hardwareMap.get(DistanceSensor.class, "blockRightSensor");
     }
 
     public void initGyro() {
@@ -258,7 +269,7 @@ public abstract class Auto extends LinearOpMode {
             motionProfiler = new MotionProfiler(.125);
         } else {
             headingPID = forwardHeadingPID;
-            motionProfiler = new MotionProfiler(.125);
+            motionProfiler = new MotionProfiler(.4);
         }
 
         while (dTravelled < magnitude) {
@@ -743,11 +754,11 @@ public abstract class Auto extends LinearOpMode {
 
     public void bringAlignerDown(String aligner) {
         if (aligner.contains("right")) {
-            rightBlockAligner.setPosition(.6);
+            rightBlockAligner.setPosition(.62);
             rightAutoBlockGrabber.setPosition(0);
         }
         else {
-            leftBlockAligner.setPosition(.6);
+            leftBlockAligner.setPosition(.62);
             leftAutoBlockGrabber.setPosition(0);
         }
     }
@@ -755,6 +766,46 @@ public abstract class Auto extends LinearOpMode {
     public void grip() {
         leftAutoBlockGrabber.setPosition(1);
         rightAutoBlockGrabber.setPosition(1);
+    }
+
+    public void strafeToBlock(String aligner) throws InterruptedException {
+        /*resetMotors();
+        double currentPosition = leftBack.getCurrentPosition();
+        int ticks = (int)(7 * C * STRAFE_COEFFICIENT);*/
+        double basePerpendicularTicks = -rightIntake.getCurrentPosition();
+
+        double sStrafe = 0;
+
+
+        double dTravelled = 0;
+        double perpendicularTicks = 0;
+
+        DistanceSensor distanceSensor;
+        if (aligner.equals("right")) {
+            distanceSensor = blockRightSensor;
+        }
+        else {
+            distanceSensor = blockLeftSensor;
+        }
+
+        while (distanceSensor.getDistance(DistanceUnit.INCH) > 1.4 && dTravelled < 3.5) {
+            heartbeat();
+
+            if (aligner.equals("right")) {
+                correction(.35, 0, "straferight", false, 1);
+            }
+            else {
+                correction(.35, 0, "strafeleft", false, 1);
+            }
+
+            perpendicularTicks = -rightIntake.getCurrentPosition() - basePerpendicularTicks;
+
+            sStrafe = perpendicularTicks * DEADWHEEL_INCHES_OVER_TICKS;
+
+            dTravelled = sStrafe;
+        }
+
+        halt();
     }
 
     public void gripBlock(String aligner) throws InterruptedException {

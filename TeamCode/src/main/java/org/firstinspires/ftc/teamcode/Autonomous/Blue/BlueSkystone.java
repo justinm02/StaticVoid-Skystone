@@ -82,7 +82,8 @@ public class BlueSkystone extends Auto {
         bringAlignerDown("right");
         splineMove(xSkystone2, ySkystone2, -.75, -.75, -.4, 0, true);
         pause(.25);
-        move(0, 1.4, -90, .5, .3, .3, "strafe", true);
+        //move(0, 1.4, -90, .5, .3, .3, "strafe", true);
+        strafeToBlock("right");
         grabBlock("right");
 
         splineMove(xCrossBridge2, yCrossBridge2, .8, .4, .8, 0, false);
@@ -96,7 +97,8 @@ public class BlueSkystone extends Auto {
         bringAlignerDown("right");
         splineMove(xStone3, yStone3, -.65, -.65, -.3, 0, true);
         pause(.25);
-        move(0, 2.1, -90, .5, .5, .3, "strafe", true);
+        //move(0, 2.1, -90, .5, .5, .3, "strafe", true);
+        strafeToBlock("right");
         grabBlock("right");
 
         splineMove(xCrossBridge4, yCrossBridge4, .9, .4, .9, 0, false);
@@ -160,7 +162,8 @@ public class BlueSkystone extends Auto {
         bringAlignerDown("right");
         splineMove(xSkystone2, ySkystone2, -.75, -.75, -.5, 0, true);
         moveByTime(.5, -.5, 0);
-        move(0, 1.5, -90, .5, .3, .3, "strafe", true);
+        //move(0, 1.5, -90, .5, .3, .3, "strafe", true);
+        strafeToBlock("right");
         grabBlock("right");
 
         splineMove(xCrossBridge2, yCrossBridge2, .7, .4, .7, 0, false);
@@ -174,7 +177,8 @@ public class BlueSkystone extends Auto {
         bringAlignerDown("right");
         splineMove(xStone3, yStone3, -.65, -.65, -.3, 0, true);
         pause(.25);
-        move(0, 2.5, -90, .5, .5, .3, "strafe", true);
+        //move(0, 2.5, -90, .5, .5, .3, "strafe", true);
+        strafeToBlock("right");
         grabBlock("right");
 
         splineMove(xCrossBridge4, yCrossBridge4, .9, .4, .9, 0, false);

@@ -11,5 +11,6 @@ public class RegisterOpMode {
     public static void registerMyOpMode(OpModeManager manager) {
         manager.register("GamerOp", org.firstinspires.ftc.teamcode.TeleOp.GamerOp.class);
         manager.register("DeadWheelsTest", org.firstinspires.ftc.teamcode.TeleOp.DeadWheelsTest.class);
+        manager.register("SensorREV2mDistance", org.firstinspires.ftc.teamcode.TeleOp.SensorREV2mDistance.class);
     }
 }

@@ -117,6 +117,7 @@ public class GamerOp extends OpMode {
 
         rightAutoBlockGrabber = hardwareMap.servo.get("rightAutoBlockGrabber");
         rightBlockAligner = hardwareMap.servo.get("rightBlockAligner");
+        //rightAutoBlockGrabber.setDirection(Servo.Direction.REVERSE);
 
         leftAutoBlockGrabber = hardwareMap.servo.get("leftAutoBlockGrabber");
         leftBlockAligner = hardwareMap.servo.get("leftBlockAligner");
