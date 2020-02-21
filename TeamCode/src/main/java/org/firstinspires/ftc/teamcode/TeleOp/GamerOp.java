@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Localization.PositionTracker;
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, leftVerticalSlide, rightVerticalSlide;
-    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner, capstoneDeployer;
+    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner, capstoneDeployer, staffServo;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private boolean precision, direction, precisionChanged, directionChanged;
@@ -124,11 +124,14 @@ public class GamerOp extends OpMode {
 
         capstoneDeployer = hardwareMap.servo.get("capstoneDeployer");
 
+        staffServo = hardwareMap.servo.get("staffServo");
+
         blockClaw.setPosition(.1);
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(0);
         rightAutoBlockGrabber.setPosition(1);
         rightBlockAligner.setPosition(.2);
+        staffServo.setPosition(1);
 
         //test
 //        blockClaw.setPosition(.1);
@@ -164,6 +167,7 @@ public class GamerOp extends OpMode {
         autoGripBlock();
         deployCapstone();
         useEncoders();
+        launchStaff();
 
         bringDownLiftAutomated();
 
@@ -413,6 +417,12 @@ public class GamerOp extends OpMode {
     public void useOneGamepad() {
         if ((gamepad1.right_bumper && gamepad1.left_bumper && gamepad1.left_trigger == 1 && gamepad1.right_trigger == 1) || (gamepad2.right_bumper && gamepad2.left_bumper && gamepad2.left_trigger == 1 && gamepad2.right_trigger == 1)) {
             useOneGamepad = !useOneGamepad;
+        }
+    }
+
+    public void launchStaff() {
+        if((!useOneGamepad && gamepad1.y && gamepad1.b) || (useOneGamepad && gamepad1.x && gamepad1.y)) {
+            staffServo.setPosition(-1);
         }
     }
 

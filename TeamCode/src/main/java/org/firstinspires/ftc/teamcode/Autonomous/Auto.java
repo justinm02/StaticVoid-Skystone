@@ -30,7 +30,7 @@ public abstract class Auto extends LinearOpMode {
     public ElapsedTime runtime = new ElapsedTime();
     private BNO055IMU imu;
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, leftVerticalSlide, rightVerticalSlide;
-    public Servo blockClaw, blockRotator, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner;
+    public Servo blockClaw, staffServo, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private DistanceSensor blockLeftSensor;
@@ -146,7 +146,7 @@ public abstract class Auto extends LinearOpMode {
         horizontalSlide.setDirection(DcMotorSimple.Direction.REVERSE);
 
         blockClaw = hardwareMap.servo.get("blockClaw");
-        blockRotator = hardwareMap.servo.get("blockRotator");
+        staffServo = hardwareMap.servo.get("staffServo");
         leftPlatformLatcher = hardwareMap.servo.get("leftPlatformLatcher");
         rightPlatformLatcher = hardwareMap.servo.get("rightPlatformLatcher");
 
@@ -157,7 +157,7 @@ public abstract class Auto extends LinearOpMode {
         leftBlockAligner = hardwareMap.servo.get("leftBlockAligner");
 
         blockClaw.setPosition(.26);
-        blockRotator.setPosition(.485);
+        staffServo.setPosition(1);
 
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(0);

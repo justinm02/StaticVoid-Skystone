@@ -140,13 +140,13 @@ public class BlueSkystone extends Auto {
         yStone3 = new double[]{0, 0, -1.2, -1.2};
 
         xCrossBridge4 = new double[]{0, 5, 22, 30};
-        yCrossBridge4 = new double[]{0, 0, 4, 4};
+        yCrossBridge4 = new double[]{0, 0, 6, 6};
 
         xPlatform3 = new double[]{0, 15, 30, 36.6};
-        yPlatform3 = new double[]{6.2, 6.2, 0, 0};
+        yPlatform3 = new double[]{8.2, 8.2, 0, 0};
 
         movePlatformX = new double[]{0, 17, 20, 20};
-        movePlatformY = new double[]{0, 0, 3.5, 9};
+        movePlatformY = new double[]{0, 1, 3.5, 9};
 
         newMove(new Waypoint(0,0), new Waypoint(-1, -26.4), 0, .4, .9, 0, true, 5, 2);
         grabBlock("right");
@@ -190,7 +190,7 @@ public class BlueSkystone extends Auto {
         getPlatform();
 
         grip();
-        move(180, 11, -103, 0.85, 0.6, 0.7, "strafe", true);
+        move(180, 7, -103, 0.85, 0.6, 0.7, "strafe", true);
         move(180, 11, 180, 0.85, 0.6, 0.7, "straight", true);
     }
 
@@ -268,7 +268,7 @@ public class BlueSkystone extends Auto {
         getPlatform();
 
         grip();
-        move(180, 11, -103, 0.85, 0.6, 0.7, "strafe", true);
+        move(180, 7, -103, 0.85, 0.6, 0.7, "strafe", true);
         move(180, 11, 180, 0.85, 0.6, 0.7, "straight", true);
     }
 
@@ -291,7 +291,7 @@ public class BlueSkystone extends Auto {
         gripPlatform();
         pause(0.75);
 
-        splineMove(movePlatformX, movePlatformY, .5, .3, 0, Math.PI/2, true);
+        splineMove(movePlatformX, movePlatformY, .4, .3, 0, Math.PI/2, true);
 
         releasePlatform();
         pause(.5);
