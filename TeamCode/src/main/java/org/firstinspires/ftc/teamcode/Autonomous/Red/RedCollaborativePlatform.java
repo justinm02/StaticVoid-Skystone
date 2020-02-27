@@ -19,7 +19,7 @@ public class RedCollaborativePlatform extends Auto {
 
             move(0, 25, 180, .6, 0.5, 0.2, "normal", true);
             move(0, 7, 94, .35, .35, .35, "strafe", true);
-            move(0, 2.5, 180, .3, 0.3, 0.3, "normal", true);
+            move(0, 3.25, 180, .3, 0.3, 0.3, "normal", true);
             gripPlatform();
             pause(0.75);
 
@@ -32,7 +32,7 @@ public class RedCollaborativePlatform extends Auto {
                 heartbeat();
             }
 
-            move(0, 24, -76, 0.5, 0.5, 0.5, "strafe", true);
+            move(0, 24, -84, 0.5, 0.5, 0.5, "strafe", true);
             PIDTurn(-90, 1);
             move(-90, 12, -90, 0.5, 0.5, 0.5, "normal", true);
         }

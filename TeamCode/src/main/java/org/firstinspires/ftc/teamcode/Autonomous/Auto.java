@@ -36,10 +36,8 @@ public abstract class Auto extends LinearOpMode {
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
 
-    private DistanceSensor blockLeftSensor;
     private DistanceSensor blockRightSensor;
     private Rev2mDistanceSensor rightSensorTimeOfFlight;
-    private Rev2mDistanceSensor leftSensorTimeOfFlight;
 
     public PositionTracker positionTracker = new PositionTracker(0, 0, 0);
     private DcMotorEx[] motors = {leftFront, leftBack, rightFront, rightBack};
@@ -48,7 +46,7 @@ public abstract class Auto extends LinearOpMode {
     private Servo leftPlatformLatcher, rightPlatformLatcher;
     private PID strafePID = new PID(0.04, 0, 0.004);
     //private PID strafePID = new PID(0, 0, 0);
-    private PID positionPID = new PID(.015, 0.0013, 0.0078);
+    private PID positionPID = new PID(.02, 0.0018, 0.0078);
     public int baseParallelLeftPosition, basePerpendicularPosition, baseParallelRightPosition;
     private double xPos = 0;
     private double yPos = 0;
@@ -187,11 +185,9 @@ public abstract class Auto extends LinearOpMode {
         lowerVerticalLimit = hardwareMap.touchSensor.get("lowerVerticalLimit");
 
         //init autoBlockGrabber distance sensors
-        blockLeftSensor = hardwareMap.get(DistanceSensor.class, "blockLeftSensor");
         blockRightSensor = hardwareMap.get(DistanceSensor.class, "blockRightSensor");
 
         rightSensorTimeOfFlight = (Rev2mDistanceSensor)blockRightSensor;
-        leftSensorTimeOfFlight = (Rev2mDistanceSensor)blockLeftSensor;
     }
 
     public void initGyro() {
@@ -394,7 +390,7 @@ public abstract class Auto extends LinearOpMode {
 
         double idealDistance =  Math.sqrt(Math.pow(end.getXcoord() - baseXCoord, 2) + Math.pow(end.getYcoord() - baseYCoord, 2));
 
-        while((Math.abs(end.getXcoord() - positionTracker.getCurrentX()) > epsilonX || Math.abs(end.getYcoord() - positionTracker.getCurrentY()) > epsilonY || Math.abs(targetHeading - positionTracker.getCurrentAngle()) > epsilonAngle) && runtime.time() - time < 4){
+        while((Math.abs(end.getXcoord() - positionTracker.getCurrentX()) > epsilonX || Math.abs(end.getYcoord() - positionTracker.getCurrentY()) > epsilonY || Math.abs(targetHeading - positionTracker.getCurrentAngle()) > epsilonAngle) && runtime.time() - time < 3){
             heartbeat();
 
             positionTracker.updateTicks(leftIntake.getCurrentPosition() - baseParallelLeftTicks, -rightVerticalSlide.getCurrentPosition() - baseParallelRightTicks, -rightIntake.getCurrentPosition() - basePerpendicularTicks);
@@ -676,13 +672,15 @@ public abstract class Auto extends LinearOpMode {
         if (movementType.contains("straight") || movementType.contains("spline")) {
             double correction = forwardHeadingPID.getCorrection(error, runtime);
 
-            double leftPower = Range.clip(power - correction, -max, max);
-            double rightPower = Range.clip(power + correction, -max, max);
+            double leftPower = power - correction;
+            double rightPower = power + correction;
 
-            leftFront.setPower(leftPower);
-            rightFront.setPower(rightPower);
-            leftBack.setPower(leftPower);
-            rightBack.setPower(rightPower);
+            double conversion = Math.abs(power / getMaxMagnitude(new double[]{leftPower, rightPower}));
+
+            leftFront.setPower(conversion*leftPower);
+            rightFront.setPower(conversion*rightPower);
+            leftBack.setPower(conversion*leftPower);
+            rightBack.setPower(conversion*rightPower);
 //            telemetry.addData("left expected power", leftPower);
 //            telemetry.addData("right expected power", rightPower);
 //            telemetry.addData("actual left power", leftFront.getPower());
@@ -763,7 +761,7 @@ public abstract class Auto extends LinearOpMode {
 
     public void bringAlignerDown(String aligner) {
         if (aligner.contains("right")) {
-            rightBlockAligner.setPosition(.62);
+            rightBlockAligner.setPosition(.75);
             rightAutoBlockGrabber.setPosition(0);
         }
         else {
@@ -787,26 +785,21 @@ public abstract class Auto extends LinearOpMode {
         if (aligner.equals("right")) {
             distanceSensor = blockRightSensor;
         }
-        else {
-            distanceSensor = blockLeftSensor;
-        }
 
-        if (!rightSensorTimeOfFlight.didTimeoutOccur()) {
-            while (distanceSensor.getDistance(DistanceUnit.INCH) > 1.4 && dTravelled < 2.5) {
-                heartbeat();
+        while (blockRightSensor.getDistance(DistanceUnit.INCH) > 1.4 && dTravelled < 2 && !rightSensorTimeOfFlight.didTimeoutOccur()) {
+            heartbeat();
 
-                if (aligner.equals("right")) {
-                    correction(.35, 0, "straferight", false, 1);
-                } else {
-                    correction(.35, 0, "strafeleft", false, 1);
-                }
-
-                perpendicularTicks = -rightIntake.getCurrentPosition() - basePerpendicularTicks;
-                sStrafe = perpendicularTicks * DEADWHEEL_INCHES_OVER_TICKS;
-                dTravelled = sStrafe;
+            if (aligner.equals("right")) {
+                correction(.35, 0, "straferight", false, 1);
+            } else {
+                correction(.35, 0, "strafeleft", false, 1);
             }
+
+            perpendicularTicks = -rightIntake.getCurrentPosition() - basePerpendicularTicks;
+            sStrafe = perpendicularTicks * DEADWHEEL_INCHES_OVER_TICKS;
+            dTravelled = sStrafe;
         }
-        else {
+        if (rightSensorTimeOfFlight.didTimeoutOccur()) {
             move(0, 1-dTravelled, -90, .35, .35, .35, "strafe", true);
         }
 
@@ -816,12 +809,12 @@ public abstract class Auto extends LinearOpMode {
     public void gripBlock(String aligner) throws InterruptedException {
         if (aligner.contains("right")) {
             rightBlockAligner.setPosition(1);
-            pause(.3);
+            pause(.25);
             rightAutoBlockGrabber.setPosition(1);
         }
         else {
             leftBlockAligner.setPosition(1);
-            pause(.3);
+            pause(.25);
             leftAutoBlockGrabber.setPosition(1);
         }
     }

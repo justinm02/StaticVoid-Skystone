@@ -31,6 +31,7 @@ public class GamerOp extends OpMode {
     private final double WHEEL_CIRCUMFERENCE_IN = Math.PI*3.05; //circumference of parallel deadwheel
     private final double DEADWHEEL_INCHES_OVER_TICKS = WHEEL_CIRCUMFERENCE_IN/deadWheelTicks;
     private double time = -999;
+    private double endgameCountdown = 0;
     private PositionTracker positionTracker = new PositionTracker(0, 0, 0);
 
     @Override
@@ -268,11 +269,11 @@ public class GamerOp extends OpMode {
     }
 
     public void intake() {
-        if (gamepad1.right_bumper) {
+        if (gamepad1.right_bumper || gamepad2.right_bumper) {
             leftIntake.setPower(1);
             rightIntake.setPower(1);
         }
-        else if (gamepad1.left_bumper) {
+        else if (gamepad1.left_bumper || gamepad2.left_bumper) {
             leftIntake.setPower(-1);
             rightIntake.setPower(-1);
         }
@@ -367,17 +368,24 @@ public class GamerOp extends OpMode {
         if (!useOneGamepad) {
             if (gamepad1.dpad_right) {
                 rightAutoBlockGrabber.setPosition(0); // up
-                leftAutoBlockGrabber.setPosition(1);
-            } else if (gamepad1.dpad_left) {
-                rightAutoBlockGrabber.setPosition(1); // down
                 leftAutoBlockGrabber.setPosition(0);
             }
+            else if (gamepad1.dpad_left) {
+                rightAutoBlockGrabber.setPosition(1); // down
+                leftAutoBlockGrabber.setPosition(1);
+            }
+
             if (gamepad1.dpad_down) {
                 rightBlockAligner.setPosition(1); // down
                 leftBlockAligner.setPosition(0.2);
-            } else if (gamepad1.dpad_up) {
+            }
+            else if (gamepad1.dpad_up) {
                 rightBlockAligner.setPosition(0.2); // up
                 leftBlockAligner.setPosition(1);
+            }
+
+            if (gamepad1.x) {
+                rightBlockAligner.setPosition(0.75);
             }
         }
     }
@@ -426,7 +434,9 @@ public class GamerOp extends OpMode {
 
     public void launchStaff() {
         if((!useOneGamepad && gamepad1.y && gamepad1.b) || (useOneGamepad && gamepad1.x && gamepad1.y)) {
-            staffServo.setPosition(-1);
+            if (runtime.time() > 90) {
+                staffServo.setPosition(-1);
+            }
         }
     }
 

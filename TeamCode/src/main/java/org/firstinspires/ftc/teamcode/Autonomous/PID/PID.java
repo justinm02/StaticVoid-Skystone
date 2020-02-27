@@ -18,7 +18,7 @@ public class PID {
     }
 
     public double getI(double error) {
-        if (Math.abs(error) < 0.25)
+        if (Math.abs(error) < 0.15)
             totalError = 0;
         return ki * totalError;
     }

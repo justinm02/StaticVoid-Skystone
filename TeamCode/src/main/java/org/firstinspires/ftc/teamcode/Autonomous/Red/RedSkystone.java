@@ -51,13 +51,13 @@ public class RedSkystone extends Auto {
         newMove(new Waypoint(0,0), new Waypoint(2, -27), 0, .35, .75, 0, true, 3, 2);
 
         xSkystone = new double[]{0, -5, -8, -31};
-        ySkystone = new double[]{0, 0, 2.7, 2.7};
+        ySkystone = new double[]{0, 0, 2.4, 2.4};
 
         xPlatform = new double[]{0, -15, -15, -40};
-        yPlatform = new double[]{5, 5, 1, 1};
+        yPlatform = new double[]{5, 5, 1.25, 1.25};
 
-        xCrossBridge = new double[]{-35, -20, -10, 7};
-        yCrossBridge = new double[]{-2.5, -2.5, 2.5, 2.5};
+        xCrossBridge = new double[]{-35, -20, -10, 6.25};
+        yCrossBridge = new double[]{-2.5, -2.5, 2.25, 2.25};
 
         xSkystone2 = new double[]{0, 8, 44, 49.5};
         ySkystone2 = new double[]{0, 0, -1.25, -1.25};
@@ -66,19 +66,19 @@ public class RedSkystone extends Auto {
         yCrossBridge2 = new double[]{0, 0, 2.5, 2.5};
 
         xPlatform2 = new double[]{0, -15, -30, -58};
-        yPlatform2 = new double[]{5, 5, -1.5, -1.5};
+        yPlatform2 = new double[]{5, 5, -1.75, -1.75};
 
         xCrossBridge3 = new double[]{0, 15, 30, 55};
         yCrossBridge3 = new double[]{0, 0, 5.25, 5.25};
 
         xStone3 = new double[]{0, 0, 13, 30};
-        yStone3 = new double[]{0, 0, -1, -1};
+        yStone3 = new double[]{0, 0, -0.3, -0.3};
 
         xCrossBridge4 = new double[]{0, -5, -8, -24};
-        yCrossBridge4 = new double[]{0, 0, 3.2, 3.2};
+        yCrossBridge4 = new double[]{0, 0, 3, 3};
 
-        xPlatform3 = new double[]{0, -15, -15, -47.75};
-        yPlatform3 = new double[]{3.8, 3.8, 0, 0};
+        xPlatform3 = new double[]{0, -15, -15, -48.2};
+        yPlatform3 = new double[]{4.1, 4.1, 0, 0};
 
         grabBlock();
 
@@ -123,42 +123,42 @@ public class RedSkystone extends Auto {
         getPlatform();
 
         grip();
-        move(0, 10, -77, 1, 0.7, 0.7, "strafe", true);
+        move(0, 10.2, -77, 1, 0.7, 0.7, "strafe", true);
         move(0, 18, 0, 1, .7, .7, "straight", true);
     }
 
     public void goMiddle() throws InterruptedException {
         newMove(new Waypoint(0,0), new Waypoint(-6, -28.75), 0, .3, .45, 0, true, 2, 2.9);
 
-        xSkystone = new double[]{0, -3, -5, -32};
+        xSkystone = new double[]{0, -3, -5, -31.25};
         ySkystone = new double[]{0, 0, 2.25, 2.25};
 
         xPlatform = new double[]{0, -15, -15, -33};
-        yPlatform = new double[]{5, 5, 0, 0};
+        yPlatform = new double[]{4.7, 4.7, 0, 0};
 
-        xCrossBridge = new double[]{-35, -25, -10, 20};
-        yCrossBridge = new double[]{-3, -3, 2.6, 2.6};
+        xCrossBridge = new double[]{-35, -25, -10, 19.25};
+        yCrossBridge = new double[]{-3, -3, 2.3, 2.3};
 
-        xSkystone2 = new double[]{0, 0, 15, 33.75};
+        xSkystone2 = new double[]{0, 0, 15, 34.4};
         ySkystone2 = new double[]{0, 0, -1.75, -1.75};
 
         xCrossBridge2 = new double[]{0, -5, -12, -46.5};
-        yCrossBridge2 = new double[]{0, 0, 2.5, 2.5};
+        yCrossBridge2 = new double[]{0, 0, 2.75, 2.75};
 
         xPlatform2 = new double[]{0, -15, -15, -59.75};
-        yPlatform2 = new double[]{4.7, 4.7, 0, 0};
+        yPlatform2 = new double[]{4.5, 4.5, 0, 0};
 
         xCrossBridge3 = new double[]{0, 15, 25, 60};
-        yCrossBridge3 = new double[]{0, 0, 5.2, 5.2};
+        yCrossBridge3 = new double[]{0, 0, 4.9, 4.9};
 
-        xStone3 = new double[]{0, 0, 13, 30};
+        xStone3 = new double[]{0, 0, 13, 32.75};
         yStone3 = new double[]{0, 0, 0, 0};
 
-        xCrossBridge4 = new double[]{0, -5, -8, -30.25};
-        yCrossBridge4 = new double[]{0, 0, 3, 3};
+        xCrossBridge4 = new double[]{0, -3, -5, -30.5};
+        yCrossBridge4 = new double[]{0, 0, 2.6, 2.6};
 
-        xPlatform3 = new double[]{0, -15, -15, -52};
-        yPlatform3 = new double[]{5, 5, 0, 0};
+        xPlatform3 = new double[]{0, -15, -15, -51};
+        yPlatform3 = new double[]{4.3, 4.3, 0, 0};
 
         grabBlock();
         pause(.25);
@@ -204,33 +204,33 @@ public class RedSkystone extends Auto {
         getPlatform();
 
         grip();
-        move(0, 12, -77, 1, 1, 0.7, "strafe", true);
+        move(0, 9.6, -77, 1, 1, 0.7, "strafe", true);
         move(0, 20, 0, 1, .7, .7, "straight", true);
     }
 
     public void goRight() throws InterruptedException {
-        newMove(new Waypoint(0,0), new Waypoint(-13.75, -29), 0, .2, .3, 0, true, 2, 2.25);
+        newMove(new Waypoint(0,0), new Waypoint(-13.75, -29.75), 0, .2, .3, 0, true, 2, 2.2);
 
         xSkystone = new double[]{0, -2, -5, -28.5};
-        ySkystone = new double[]{0, 0, 1.9, 1.9};
+        ySkystone = new double[]{0, 0, 2.4, 2.4};
 
         xPlatform = new double[]{0, -5, -24, -30};
-        yPlatform = new double[]{3, 3, -4.2, -4.2};
+        yPlatform = new double[]{3, 3, -4.5, -4.5};
 
         xCrossBridge = new double[]{-27, -15, -15, 15};
-        yCrossBridge = new double[]{-3, -3, 1.7, 1.7};
+        yCrossBridge = new double[]{-3, -3, 2.1, 2.1};
 
         xSkystone2 = new double[]{0, 0, 30, 41};
-        ySkystone2 = new double[]{0, 0, -1.9, -1.9};
+        ySkystone2 = new double[]{0, 0, -2.3, -2.3};
 
         xCrossBridge2 = new double[]{0, -5, -12, -32};
-        yCrossBridge2 = new double[]{0, 0, 2.35, 2.35};
+        yCrossBridge2 = new double[]{0, 0, 2.75, 2.75};
 
         xPlatform2 = new double[]{0, -15, -15, -68};
-        yPlatform2 = new double[]{5, 5, 1.25, 1.25};
+        yPlatform2 = new double[]{5, 5, 1, 1};
 
         xCrossBridge3 = new double[]{0, 15, 25, 61};
-        yCrossBridge3 = new double[]{0, 0, 5.2, 5.2};
+        yCrossBridge3 = new double[]{0, 0, 5.5, 5.5};
 
         xStone3 = new double[]{0, 0, 13, 31.5};
         yStone3 = new double[]{0, 0, -1.4, -1.4};
@@ -238,8 +238,8 @@ public class RedSkystone extends Auto {
         xCrossBridge4 = new double[]{0, -5, -8, -30.5};
         yCrossBridge4 = new double[]{0, 0, 2.7, 2.7};
 
-        xPlatform3 = new double[]{0, -15, -15, -51};
-        yPlatform3 = new double[]{5, 5, 1.5, 1.5};
+        xPlatform3 = new double[]{0, -15, -15, -52.5};
+        yPlatform3 = new double[]{5, 5, 1, 1};
 
         grabBlock();
 
@@ -288,7 +288,7 @@ public class RedSkystone extends Auto {
 
     public void grabBlock() throws InterruptedException {
         gripBlock("right");
-        pause(0.25);
+        pause(0.32);
         bringAlignerUp("right");
     }
 
@@ -300,12 +300,12 @@ public class RedSkystone extends Auto {
 
     public void getPlatform() throws InterruptedException {
         PIDTurn(90, .75);
-        move(90, 4, -90, .3, .3, .3, "straight", true);
+        move(90, 4.5, -90, .3, .3, .3, "straight", true);
 
         gripPlatform();
         pause(0.75);
 
-        splineMove(movePlatformX, movePlatformY, .4, .3, 0, Math.PI/2, true);
+        splineMove(movePlatformX, movePlatformY, .4, .3, .3, Math.PI/2, true);
 
         releasePlatform();
         pause(.5);
