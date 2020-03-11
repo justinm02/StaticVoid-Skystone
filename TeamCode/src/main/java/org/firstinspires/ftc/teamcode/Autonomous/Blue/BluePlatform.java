@@ -19,12 +19,14 @@ public class BluePlatform extends Auto {
 
             gripPlatform();
             pause(2);
-            moveByWheelEncoders(0, 10, .5, "straight");
+            moveByWheelEncoders(0, 20, .5, "straight");
             PIDTurn(90, .5);
             releasePlatform();
             pause(2);
             moveByTime(2 ,-.3, 90);
-            strafeByWheelEncoders(90, 34, .5, "straferight");
+            strafeByWheelEncoders(90, 36, .5, "straferight");
+            strafeByWheelEncoders(-90, 3, .3, "straferight");
+            grip();
             moveByWheelEncoders(90, 40, .5, "straight");
         }
         catch (InterruptedException e) { }

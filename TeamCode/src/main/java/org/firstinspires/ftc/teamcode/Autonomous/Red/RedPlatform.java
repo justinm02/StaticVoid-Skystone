@@ -13,17 +13,25 @@ public class RedPlatform extends Auto {
         waitForStart();
 
         try {
+            double time = runtime.time();
             moveByWheelEncoders(0, 30, -.5, "straight");
-            strafeByWheelEncoders(0, 6, .5, "strafeleft");
-            moveByWheelEncoders(0, 2, -.3, "straight");
+            strafeByWheelEncoders(0, 9, .5, "strafeleft");
+            moveByWheelEncoders(0, 3, -.3, "straight");
             gripPlatform();
             pause(2);
-            moveByWheelEncoders(0, 10, .5, "straight");
+            moveByWheelEncoders(0, 20, .5, "straight");
             PIDTurn(-90, .5);
             releasePlatform();
             pause(.5);
             moveByTime(2, -.3, -90);
-            strafeByWheelEncoders(-90, 34, .3, "strafeleft");
+            strafeByWheelEncoders(-90, 36, .3, "strafeleft");
+            strafeByWheelEncoders(-90, 3, .3, "straferight");
+            grip();
+
+            while (runtime.time() - time < 24) {
+                heartbeat();
+            }
+
             moveByWheelEncoders(-90, 40, .5, "straight");
         }
         catch (InterruptedException e) { }
