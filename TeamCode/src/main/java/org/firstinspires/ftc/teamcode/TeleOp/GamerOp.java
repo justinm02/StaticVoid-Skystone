@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Localization.PositionTracker;
 public class GamerOp extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftFront, leftBack, rightFront, rightBack, rightIntake, leftIntake, leftVerticalSlide, rightVerticalSlide;
-    private Servo blockClaw, leftPlatformLatcher, rightPlatformLatcher, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner, capstoneDeployer, staffServo;
+    private Servo blockClaw, backBlockClaw, leftFlipper, rightFlipper, leftPlatformLatcher, rightPlatformLatcher, rightAutoBlockGrabber, rightBlockAligner, leftAutoBlockGrabber, leftBlockAligner, capstoneDeployer, staffServo;
     private CRServo horizontalSlide;
     private TouchSensor horizontalLimit, lowerVerticalLimit;
     private boolean precision, direction, precisionChanged, directionChanged;
@@ -83,7 +83,6 @@ public class GamerOp extends OpMode {
         //leftIntake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         //leftIntake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftIntake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftIntake.setDirection(DcMotor.Direction.REVERSE);
 
 
         rightIntake = (DcMotorEx) hardwareMap.dcMotor.get("rightIntake");
@@ -112,33 +111,39 @@ public class GamerOp extends OpMode {
 
     public void setUpServos() {
         blockClaw = hardwareMap.servo.get("blockClaw");
+        backBlockClaw = hardwareMap.servo.get("backBlockClaw");
+
+        leftFlipper = hardwareMap.servo.get("leftFlipper");
+        rightFlipper = hardwareMap.servo.get("rightFlipper");
+
         leftPlatformLatcher = hardwareMap.servo.get("leftPlatformLatcher");
         rightPlatformLatcher = hardwareMap.servo.get("rightPlatformLatcher");
+        rightPlatformLatcher.setDirection(Servo.Direction.REVERSE);
 
         rightAutoBlockGrabber = hardwareMap.servo.get("rightAutoBlockGrabber");
         rightBlockAligner = hardwareMap.servo.get("rightBlockAligner");
         //rightAutoBlockGrabber.setDirection(Servo.Direction.REVERSE);
 
-        leftAutoBlockGrabber = hardwareMap.servo.get("leftAutoBlockGrabber");
-        leftBlockAligner = hardwareMap.servo.get("leftBlockAligner");
+        //leftAutoBlockGrabber = hardwareMap.servo.get("leftAutoBlockGrabber");
+        //leftBlockAligner = hardwareMap.servo.get("leftBlockAligner");
 
         capstoneDeployer = hardwareMap.servo.get("capstoneDeployer");
 
-        staffServo = hardwareMap.servo.get("staffServo");
+        //staffServo = hardwareMap.servo.get("staffServo");
 
         blockClaw.setPosition(.1);
         leftPlatformLatcher.setPosition(0);
         rightPlatformLatcher.setPosition(0);
         rightAutoBlockGrabber.setPosition(1);
         rightBlockAligner.setPosition(.2);
-        staffServo.setPosition(1);
+        //staffServo.setPosition(1);
 
         //test
 //        blockClaw.setPosition(.1);
 //        leftPlatformLatcher.setPosition(0);
 //        rightPlatformLatcher.setPosition(0);
-        leftAutoBlockGrabber.setPosition(1);
-        leftBlockAligner.setPosition(.2);
+        //leftAutoBlockGrabber.setPosition(1);
+        //leftBlockAligner.setPosition(1);
     }
 
     @Override
@@ -167,7 +172,7 @@ public class GamerOp extends OpMode {
         autoGripBlock();
         deployCapstone();
         useEncoders();
-        launchStaff();
+        //launchStaff();
 
         bringDownLiftAutomated();
 
@@ -285,8 +290,8 @@ public class GamerOp extends OpMode {
     public void moveSlides() {
         //vertical slide
         if((lowerVerticalLimit.getValue() < 1 || gamepad2.left_stick_y < 0 && !useOneGamepad)) {
-            rightVerticalSlide.setPower(-gamepad2.left_stick_y);
-            leftVerticalSlide.setPower(-gamepad2.left_stick_y);
+            rightVerticalSlide.setPower(-gamepad2.left_stick_y*(gamepad2.left_stick_y > 0 ? .5 : 1));
+            leftVerticalSlide.setPower(-gamepad2.left_stick_y*(gamepad2.left_stick_y > 0 ? .5 : 1));
         }
         else {
             if (!useOneGamepad) {
@@ -420,11 +425,11 @@ public class GamerOp extends OpMode {
         }
     }
 
-    public void launchStaff() {
+    /*public void launchStaff() {
         if((!useOneGamepad && gamepad1.y && gamepad1.b) || (useOneGamepad && gamepad1.x && gamepad1.y)) {
             staffServo.setPosition(-1);
         }
-    }
+    }*/
 
     @Override
     public void stop() {

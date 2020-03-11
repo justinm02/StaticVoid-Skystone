@@ -166,7 +166,7 @@ public abstract class Auto extends LinearOpMode {
         rightBlockAligner.setPosition(.2);
 
         leftAutoBlockGrabber.setPosition(1);
-        leftBlockAligner.setPosition(.2);
+        leftBlockAligner.setPosition(1);
 
         //test
 //        leftPlatformLatcher.setPosition(0);
@@ -758,7 +758,7 @@ public abstract class Auto extends LinearOpMode {
             rightAutoBlockGrabber.setPosition(0);
         }
         else {
-            leftBlockAligner.setPosition(.62);
+            leftBlockAligner.setPosition(.5);
             leftAutoBlockGrabber.setPosition(0);
         }
     }
@@ -807,7 +807,7 @@ public abstract class Auto extends LinearOpMode {
             rightAutoBlockGrabber.setPosition(1);
         }
         else {
-            leftBlockAligner.setPosition(1);
+            leftBlockAligner.setPosition(0);
             pause(.3);
             leftAutoBlockGrabber.setPosition(1);
         }
@@ -818,7 +818,7 @@ public abstract class Auto extends LinearOpMode {
             rightBlockAligner.setPosition(.2);
         }
         else {
-            leftBlockAligner.setPosition(.2);
+            leftBlockAligner.setPosition(1);
         }
     }
 
@@ -829,7 +829,7 @@ public abstract class Auto extends LinearOpMode {
             rightAutoBlockGrabber.setPosition(0);
         }
         else {
-            leftBlockAligner.setPosition(.6);
+            leftBlockAligner.setPosition(.5);
             pause(.3);
             leftAutoBlockGrabber.setPosition(0);
         }
